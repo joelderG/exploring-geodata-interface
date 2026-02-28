@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-slice-heatmap',
   imports: [],
   templateUrl: './slice-heatmap.component.html',
-  styleUrl: './slice-heatmap.component.scss',
+  styleUrl: './slice-heatmap.component.scss'
 })
 export class SliceHeatmapComponent {
 

@@ -6,11 +6,11 @@ describe('VolumeViewerComponent', () => {
   let component: VolumeViewerComponent;
   let fixture: ComponentFixture<VolumeViewerComponent>;
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [VolumeViewerComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(VolumeViewerComponent);
     component = fixture.componentInstance;

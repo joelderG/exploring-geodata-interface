@@ -6,11 +6,11 @@ describe('SliceHeatmapComponent', () => {
   let component: SliceHeatmapComponent;
   let fixture: ComponentFixture<SliceHeatmapComponent>;
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [SliceHeatmapComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(SliceHeatmapComponent);
     component = fixture.componentInstance;
