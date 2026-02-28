@@ -1,9 +1,8 @@
 import { Component, signal } from '@angular/core';
-import { ModelViewerComponent } from "./model-viewer/model-viewer.component";
 
 @Component({
   selector: 'app-root',
-  imports: [ModelViewerComponent],
+  imports: [],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
