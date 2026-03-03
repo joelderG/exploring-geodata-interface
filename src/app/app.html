@@ -1,1 +1,16 @@
-<app-slice-heatmap></app-slice-heatmap>
+<app-volume-viewer
+    style="flex:2"
+    [xCoords]="xCoords"
+    [yCoords]="yCoords"
+    [zCoords]="zCoords"
+    [classes]="classes"
+    [zIndex]="zIndex"
+    [classVisible]="classVisible">
+</app-volume-viewer>
+
+<app-slice-heatmap 
+    [zIndex]="zIndex"
+    [xCoords]="xCoords"
+    [yCoords]="yCoords"
+    [classes]="classes">
+</app-slice-heatmap>
