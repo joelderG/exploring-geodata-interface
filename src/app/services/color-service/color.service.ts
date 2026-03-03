@@ -5,13 +5,8 @@ import { Injectable } from '@angular/core';
 })
 export class ColorService {
   private readonly palette = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52'];
-
-  private hexToRgb(hex: string) {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-    return [r, g, b];
-  }
+  private readonly noDataClass = -1;
+  private readonly noDataColor = '#FFFFFF';
 
   public getColor(classIndex: number): string {
     return this.palette[classIndex % this.palette.length];
@@ -28,7 +23,15 @@ export class ColorService {
     }
 
     const classToColor = new Map<number, string>();
-    uniqueClasses.forEach((cls, i) => classToColor.set(cls, this.getColor(i)));
+    let paletteIndex = 0;
+    uniqueClasses.forEach((cls) => {
+      if (cls === this.noDataClass) {
+        classToColor.set(cls, this.noDataColor);
+        return;
+      }
+      classToColor.set(cls, this.getColor(paletteIndex));
+      paletteIndex++;
+    });
 
     const sorted = [...uniqueClasses].sort((a, b) => a - b);
     const zmin = sorted[0];

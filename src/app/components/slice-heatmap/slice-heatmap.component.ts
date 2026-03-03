@@ -21,6 +21,7 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly colorService = inject(ColorService);
   private isPlotInitialized = false;
+  private currentSliceClasses: number[] = [];
   private readonly destroy$ = new Subject<void>();
   private readonly zIndex$ = new Subject<number>();
 
@@ -62,8 +63,9 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private renderSlice(data: number[][], z_val: number) {
-    const { colorscale, zmin, zmax, tickvals, ticktext } =
-      this.colorService.buildDiscreteColorscale(this.classes);
+    this.currentSliceClasses = this.extractSliceClasses(data);
+    const colorscaleClasses = this.getColorscaleClasses();
+    const { colorscale, zmin, zmax, tickvals, ticktext } = this.colorService.buildDiscreteColorscale(colorscaleClasses);
 
     const trace: Partial<Data> = {
       type: 'heatmap',
@@ -102,8 +104,8 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateColorscale() {
-    const { colorscale, zmin, zmax, tickvals, ticktext } =
-      this.colorService.buildDiscreteColorscale(this.classes);
+    const colorscaleClasses = this.getColorscaleClasses();
+    const { colorscale, zmin, zmax, tickvals, ticktext } = this.colorService.buildDiscreteColorscale(colorscaleClasses);
     Plotly.restyle(
       this.plotElement.nativeElement,
       {
@@ -115,5 +117,15 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
       },
       [0]
     );
+  }
+
+  private extractSliceClasses(data: number[][]): number[] {
+    const values = new Set<number>();
+    data.forEach((row) => row.forEach((value) => values.add(value)));
+    return Array.from(values);
+  }
+
+  private getColorscaleClasses(): number[] {
+    return Array.from(new Set([...this.classes, ...this.currentSliceClasses]));
   }
 }
