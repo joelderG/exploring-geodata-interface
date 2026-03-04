@@ -4,6 +4,8 @@ import * as Plotly from 'plotly.js-dist-min';
 import { Data, Layout } from 'plotly.js';
 import { Volume } from '@services/api-service/api.types';
 import { ColorService } from '@services/color-service/color.service';
+import { AppStateService } from '@services/app-state-service/app-state.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-volume-viewer',
@@ -18,15 +20,37 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   @Input() classes: number[] = [];
 
   @Input() zIndex = 0;
-  @Input() classVisible: boolean[] = [];
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
 
   private readonly apiService = inject(ApiService);
   private readonly colorService = inject(ColorService);
+  private readonly appStateService = inject(AppStateService);
+  private readonly destroy$ = new Subject<void>();
   private isPlotInitialized = false;
   private volume?: Volume;
+  private classVisible: boolean[] = [];
+  private classPoints: { x: number[]; y: number[]; z: number[] }[] = [];
+  private showOnlyCurrentSlicePoints = false;
 
   ngOnInit() {
+    this.appStateService.classVisibility$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((classVisible) => {
+        this.classVisible = classVisible;
+        if (this.isPlotInitialized) {
+          this.updateVisibility();
+        }
+      });
+
+    this.appStateService.showOnlyCurrentSlicePoints$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((showOnlyCurrentSlicePoints) => {
+        this.showOnlyCurrentSlicePoints = showOnlyCurrentSlicePoints;
+        if (this.isPlotInitialized) {
+          this.updateRenderedPoints();
+        }
+      });
+
     this.apiService.getVolume().subscribe((volume) => {
       this.volume = volume;
       this.tryBuildPlot();
@@ -41,14 +65,16 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
     if (changes['zIndex']) {
       this.updateSlicePlane();
+      if (this.showOnlyCurrentSlicePoints) {
+        this.updateRenderedPoints();
+      }
     }
 
-    if (changes['classVisible']) {
-      this.updateVisibility();
-    }
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     Plotly.purge(this.plotElement.nativeElement);
   }
 
@@ -58,6 +84,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     const nx = volume.data[0][0].length;
 
     const traces: Partial<Data>[] = [];
+    this.classPoints = [];
 
     this.classes.forEach((cls, i) => {
       const xs: number[] = [], ys: number[] = [], zs: number[] = [];
@@ -83,6 +110,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         legendgroup: `cls${cls}`,
         visible: true
       });
+
+      this.classPoints.push({ x: xs, y: ys, z: zs });
     });
 
     const zVal = this.zCoords[this.zIndex];
@@ -121,7 +150,10 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       responsive: true
     });
 
+    this.bindLegendSync();
     this.isPlotInitialized = true;
+    this.updateRenderedPoints();
+    this.updateVisibility();
   }
 
   private inputsReady() {
@@ -157,6 +189,60 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         this.plotElement.nativeElement,
         { visible: visible ? true : 'legendonly' },
         [i]
+      );
+    });
+  }
+
+  private bindLegendSync() {
+    this.plotElement.nativeElement.on('plotly_legendclick', (event: { curveNumber: number }) => {
+      if (event.curveNumber >= this.classes.length) {
+        return true;
+      }
+
+      this.appStateService.toggleClassVisibilityAtIndex(event.curveNumber);
+      return false;
+    });
+
+    this.plotElement.nativeElement.on('plotly_legenddoubleclick', (event: { curveNumber: number }) => {
+      if (event.curveNumber >= this.classes.length) {
+        return true;
+      }
+
+      this.appStateService.setOnlyClassVisible(event.curveNumber);
+      return false;
+    });
+  }
+
+  private updateRenderedPoints() {
+    const targetZ = this.zCoords[this.zIndex];
+    const eps = 1e-9;
+
+    this.classPoints.forEach((points, index) => {
+      if (!this.showOnlyCurrentSlicePoints) {
+        Plotly.restyle(
+          this.plotElement.nativeElement,
+          { x: [points.x], y: [points.y], z: [points.z] },
+          [index]
+        );
+        return;
+      }
+
+      const xFiltered: number[] = [];
+      const yFiltered: number[] = [];
+      const zFiltered: number[] = [];
+
+      for (let i = 0; i < points.z.length; i++) {
+        if (Math.abs(points.z[i] - targetZ) < eps) {
+          xFiltered.push(points.x[i]);
+          yFiltered.push(points.y[i]);
+          zFiltered.push(points.z[i]);
+        }
+      }
+
+      Plotly.restyle(
+        this.plotElement.nativeElement,
+        { x: [xFiltered], y: [yFiltered], z: [zFiltered] },
+        [index]
       );
     });
   }
