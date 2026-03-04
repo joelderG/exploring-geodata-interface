@@ -1,18 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CuttingPlaneComponent } from './cutting-plane.component';
 
-import { SliceHeatmapComponent } from './cutting-plane.component';
-
-describe('SliceHeatmapComponent', () => {
-  let component: SliceHeatmapComponent;
-  let fixture: ComponentFixture<SliceHeatmapComponent>;
+describe('CuttingPlaneComponent', () => {
+  let component: CuttingPlaneComponent;
+  let fixture: ComponentFixture<CuttingPlaneComponent>;
 
   beforeEach(async() => {
     await TestBed.configureTestingModule({
-      imports: [SliceHeatmapComponent]
+      imports: [CuttingPlaneComponent]
     })
       .compileComponents();
 
-    fixture = TestBed.createComponent(SliceHeatmapComponent);
+    fixture = TestBed.createComponent(CuttingPlaneComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
