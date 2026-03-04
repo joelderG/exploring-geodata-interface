@@ -8,7 +8,5 @@
       "jasmine"
     ]
   },
-  "include": [
-    "src/**/*.ts"
-  ]
+  "include": ["src/**/*.ts"]
 }
