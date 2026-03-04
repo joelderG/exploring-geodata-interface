@@ -4,14 +4,21 @@ import * as Plotly from 'plotly.js-dist-min';
 import { ColorScale, Data } from 'plotly.js';
 import { ColorService } from '@services/color-service/color.service';
 import { Subject, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
+import { AppStateService } from '@services/app-state-service/app-state.service';
+
+interface DiscreteColorscaleConfig {
+  colorscale: ColorScale;
+  zmin: number;
+  zmax: number;
+}
 
 @Component({
-  selector: 'app-slice-heatmap',
+  selector: 'app-cutting-plane',
   imports: [],
-  templateUrl: './slice-heatmap.component.html',
-  styleUrl: './slice-heatmap.component.scss'
+  templateUrl: './cutting-plane.component.html',
+  styleUrl: './cutting-plane.component.scss'
 })
-export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
+export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() zIndex = 0;
   @Input() xCoords: number[] = [];
   @Input() yCoords: number[] = [];
@@ -20,12 +27,26 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
   
   private readonly apiService = inject(ApiService);
   private readonly colorService = inject(ColorService);
+  private readonly appStateService = inject(AppStateService);
   private isPlotInitialized = false;
-  private currentSliceClasses: number[] = [];
+  private currentSliceData: number[][] = [];
+  private currentZVal = 0;
+  private visibleClasses: number[] = [];
+  private fixedColorscaleConfig: DiscreteColorscaleConfig | null = null;
   private readonly destroy$ = new Subject<void>();
   private readonly zIndex$ = new Subject<number>();
+  private readonly noDataClass = -1;
 
   ngOnInit() {
+    this.appStateService.visibleClasses$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((visibleClasses) => {
+        this.visibleClasses = visibleClasses;
+        if (this.isPlotInitialized && this.currentSliceData.length > 0) {
+          this.restylePlot(this.applyVisibilityFilter(this.currentSliceData), this.currentZVal);
+        }
+      });
+
     this.zIndex$
       .pipe(
         distinctUntilChanged(),
@@ -44,7 +65,8 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (changes['classes'] && this.isPlotInitialized) {
-      this.updateColorscale();
+      this.ensureFixedColorscale();
+      this.applyFixedColorscale();
     }
 
     if (!this.isPlotInitialized && this.inputsReady()) {
@@ -63,31 +85,30 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private renderSlice(data: number[][], z_val: number) {
-    this.currentSliceClasses = this.extractSliceClasses(data);
-    const colorscaleClasses = this.getColorscaleClasses();
-    const { colorscale, zmin, zmax, tickvals, ticktext } = this.colorService.buildDiscreteColorscale(colorscaleClasses);
+    this.currentSliceData = data;
+    this.currentZVal = z_val;
+    const filteredData = this.applyVisibilityFilter(data);
+    this.ensureFixedColorscale();
+    const colorscaleConfig = this.fixedColorscaleConfig;
+    if (!colorscaleConfig) return;
 
     const trace: Partial<Data> = {
       type: 'heatmap',
       x: this.xCoords,
       y: this.yCoords,
-      z: data,
-      colorscale: colorscale as ColorScale,
-      zmin,
-      zmax,
+      z: filteredData,
+      colorscale: colorscaleConfig.colorscale,
+      zmin: colorscaleConfig.zmin,
+      zmax: colorscaleConfig.zmax,
       zsmooth: false,
-      showscale: true,
-      colorbar: {
-        tickvals,
-        ticktext
-      }
+      showscale: false
     };
 
     if (!this.isPlotInitialized) {
       this.createPlot(trace, z_val);
       this.isPlotInitialized = true;
     } else {
-      this.restylePlot(data, z_val);
+      this.restylePlot(filteredData, z_val);
     }
   }
 
@@ -103,29 +124,38 @@ export class SliceHeatmapComponent implements OnInit, OnChanges, OnDestroy {
     Plotly.relayout(this.plotElement.nativeElement, { title: { text: `XY-Schnitt z = ${z_val.toFixed(1)} m` } });
   }
 
-  private updateColorscale() {
-    const colorscaleClasses = this.getColorscaleClasses();
-    const { colorscale, zmin, zmax, tickvals, ticktext } = this.colorService.buildDiscreteColorscale(colorscaleClasses);
+  private applyFixedColorscale() {
+    const colorscaleConfig = this.fixedColorscaleConfig;
+    if (!colorscaleConfig || !this.isPlotInitialized) return;
+
     Plotly.restyle(
       this.plotElement.nativeElement,
       {
-        colorscale: [colorscale],
-        zmin: [zmin],
-        zmax: [zmax],
+        colorscale: [colorscaleConfig.colorscale],
+        zmin: [colorscaleConfig.zmin],
+        zmax: [colorscaleConfig.zmax],
         zsmooth: [false],
-        colorbar: [{ tickvals, ticktext }]
+        showscale: [false]
       },
       [0]
     );
   }
 
-  private extractSliceClasses(data: number[][]): number[] {
-    const values = new Set<number>();
-    data.forEach((row) => row.forEach((value) => values.add(value)));
-    return Array.from(values);
+  private applyVisibilityFilter(data: number[][]): number[][] {
+    if (this.classes.length === 0) return data;
+    const visible = new Set(this.visibleClasses);
+    return data.map((row) => row.map((value) => (visible.has(value) ? value : this.noDataClass)));
   }
 
-  private getColorscaleClasses(): number[] {
-    return Array.from(new Set([...this.classes, ...this.currentSliceClasses]));
+  private ensureFixedColorscale(): void {
+    if (this.fixedColorscaleConfig || this.classes.length === 0) return;
+
+    const colorscaleClasses = Array.from(new Set([this.noDataClass, ...this.classes]));
+    const { colorscale, zmin, zmax } = this.colorService.buildDiscreteColorscale(colorscaleClasses);
+    this.fixedColorscaleConfig = {
+      colorscale: colorscale as ColorScale,
+      zmin,
+      zmax
+    };
   }
 }

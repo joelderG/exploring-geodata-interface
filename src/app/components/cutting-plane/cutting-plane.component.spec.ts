@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SliceHeatmapComponent } from './slice-heatmap.component';
+import { SliceHeatmapComponent } from './cutting-plane.component';
 
 describe('SliceHeatmapComponent', () => {
   let component: SliceHeatmapComponent;
