@@ -131,7 +131,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     });
 
     const layout: Partial<Layout> = {
-      height: 600,
+      autosize: true,
       margin: { l: 0, r: 0, t: 40, b: 0 },
       scene: {
         xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },

@@ -113,10 +113,16 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private createPlot(trace: Partial<Data>, z_val: number) {
-    Plotly.newPlot(this.plotElement.nativeElement, [trace], {
-      title: { text: `XY-Schnitt z = ${z_val.toFixed(1)} m` },
-      margin: { t: 40, b: 40, l: 40, r: 10 }
-    });
+    Plotly.newPlot(
+      this.plotElement.nativeElement,
+      [trace],
+      {
+        title: { text: `XY-Schnitt z = ${z_val.toFixed(1)} m` },
+        margin: { t: 40, b: 40, l: 40, r: 10 },
+        autosize: true
+      },
+      { responsive: true }
+    );
   }
 
   private restylePlot(data: number[][], z_val: number) {
