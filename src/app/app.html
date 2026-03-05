@@ -1,11 +1,14 @@
-<app-volume-viewer
-    style="flex:2"
-    [xCoords]="xCoords"
-    [yCoords]="yCoords"
-    [zCoords]="zCoords"
-    [classes]="classes"
-    [zIndex]="zIndex">
-</app-volume-viewer>
+<div class="viewer-panel">
+  <app-volume-viewer
+      [xCoords]="xCoords"
+      [yCoords]="yCoords"
+      [zCoords]="zCoords"
+      [classes]="classes"
+      [zIndex]="zIndex">
+  </app-volume-viewer>
+
+  <app-class-selector [classes]="classes"></app-class-selector>
+</div>
 
 <app-cutting-plane 
     [zIndex]="zIndex"

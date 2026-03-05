@@ -108,7 +108,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         marker: { size: 3, color: this.colorService.getColor(i), opacity: 0.4 },
         name: `Klasse ${cls}`,
         legendgroup: `cls${cls}`,
-        visible: true
+        visible: true,
+        showlegend: false
       });
 
       this.classPoints.push({ x: xs, y: ys, z: zs });
@@ -132,11 +133,6 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     const layout: Partial<Layout> = {
       height: 600,
       margin: { l: 0, r: 0, t: 40, b: 0 },
-      legend: {
-        title: { text: 'Gesteinsklassen' },
-        itemclick: 'toggle',
-        itemdoubleclick: 'toggleothers'
-      },
       scene: {
         xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },
         yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.yCoords), Math.max(...this.yCoords)] },
@@ -150,7 +146,6 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       responsive: true
     });
 
-    this.bindLegendSync();
     this.isPlotInitialized = true;
     this.updateRenderedPoints();
     this.updateVisibility();
@@ -190,26 +185,6 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         { visible: visible ? true : 'legendonly' },
         [i]
       );
-    });
-  }
-
-  private bindLegendSync() {
-    this.plotElement.nativeElement.on('plotly_legendclick', (event: { curveNumber: number }) => {
-      if (event.curveNumber >= this.classes.length) {
-        return true;
-      }
-
-      this.appStateService.toggleClassVisibilityAtIndex(event.curveNumber);
-      return false;
-    });
-
-    this.plotElement.nativeElement.on('plotly_legenddoubleclick', (event: { curveNumber: number }) => {
-      if (event.curveNumber >= this.classes.length) {
-        return true;
-      }
-
-      this.appStateService.setOnlyClassVisible(event.curveNumber);
-      return false;
     });
   }
 
