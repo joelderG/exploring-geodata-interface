@@ -1,0 +1,11 @@
+{
+  "version": "0.1.0",
+  "features": [
+    "Interactive Z-slice navigation via keyboard",
+    "2D cutting-plane heatmap view",
+    "3D volume viewer overlay with active slice plane",
+    "Class visibility toggling and single-class isolation",
+    "Slice-only point rendering mode",
+    "Synchronized class colors across 2D/3D views"
+  ]
+}

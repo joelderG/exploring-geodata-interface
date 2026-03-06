@@ -1,6 +1,6 @@
 {
   "name": "reflex-geo-explore",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Development of an interactive interface for exploring voxel-based geodata using elastic displays",
   "homepage": "https://github.com/joelderG/exploring-geodata-interface#readme",
   "author": "Joel Giese",
