@@ -1,0 +1,21 @@
+@if (classes.length > 0) {
+  <div class="class-selector">
+    <div class="class-selector__title">Gesteinsklassen</div>
+    <div class="class-selector__items">
+      @for (cls of classes; track $index) {
+        <button
+          type="button"
+          class="class-item"
+          [class.class-item--hidden]="!isVisible($index)"
+          [attr.aria-pressed]="isVisible($index)"
+          (click)="toggle($index)"
+          (dblclick)="setOnlyVisible($index)"
+        >
+          <span class="class-item__swatch" [style.background]="getClassColor($index)"></span>
+          <span>Klasse {{ cls }}</span>
+        </button>
+      }
+    </div>
+    <div class="class-selector__hint">Klick: ein/aus, Doppelklick: nur diese Klasse</div>
+  </div>
+}
