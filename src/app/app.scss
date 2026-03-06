@@ -1,0 +1,71 @@
+:host {
+  --class-selector-width: 200px;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cutting-plane-layer {
+  position: absolute;
+  inset: 0 var(--class-selector-width) 0 0;
+  height: 100%;
+  z-index: 1;
+}
+
+.cutting-plane-layer app-cutting-plane {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.volume-viewer-layer {
+  position: absolute;
+  top: 32px;
+  left: 32px;
+  width: min(40vw, 560px);
+  height: min(42vh, 360px);
+  z-index: 3;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 220ms ease-out, visibility 0s linear 0s;
+}
+
+.volume-viewer-layer.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 220ms ease-out, visibility 0s linear 220ms;
+}
+
+.volume-viewer-layer app-volume-viewer {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.class-selector-layer {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: var(--class-selector-width);
+  z-index: 2;
+  padding: 16px;
+  box-sizing: border-box;
+  display: flex;
+  overflow: auto;
+}
+
+.class-selector-layer app-class-selector {
+  display: block;
+  width: 100%;
+  min-height: 100%;
+}

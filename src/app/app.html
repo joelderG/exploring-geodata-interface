@@ -1,15 +1,24 @@
-<app-volume-viewer
-    style="flex:2"
-    [xCoords]="xCoords"
-    [yCoords]="yCoords"
-    [zCoords]="zCoords"
-    [classes]="classes"
-    [zIndex]="zIndex">
-</app-volume-viewer>
+<div class="app-shell">
+  <div class="cutting-plane-layer">
+    <app-cutting-plane
+      [zIndex]="zIndex"
+      [xCoords]="xCoords"
+      [yCoords]="yCoords"
+      [classes]="classes">
+    </app-cutting-plane>
+  </div>
 
-<app-cutting-plane 
-    [zIndex]="zIndex"
-    [xCoords]="xCoords"
-    [yCoords]="yCoords"
-    [classes]="classes">
-</app-cutting-plane>
+  <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">
+    <app-volume-viewer
+      [xCoords]="xCoords"
+      [yCoords]="yCoords"
+      [zCoords]="zCoords"
+      [classes]="classes"
+      [zIndex]="zIndex">
+    </app-volume-viewer>
+  </div>
+
+  <div class="class-selector-layer">
+    <app-class-selector [classes]="classes"></app-class-selector>
+  </div>
+</div>
