@@ -4,6 +4,8 @@ import { ClassSelectorComponent } from '@components/class-selector/class-selecto
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
+import { InteractionService } from '@services/interaction/interaction.service';
+import { skip, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +17,8 @@ export class App implements OnInit, OnDestroy {
   protected readonly title = signal('reflex-geo-explore');
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
+  private readonly interactionService = inject(InteractionService);
+  private dataSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -26,6 +30,8 @@ export class App implements OnInit, OnDestroy {
   protected classes: number[] = [];
 
   ngOnInit() {
+    this.interactionService.startStreaming();
+
     this.apiService.getMeta().subscribe((metaData) => {
       this.xCoords = metaData.x_coords;
       this.yCoords = metaData.y_coords;
@@ -34,6 +40,10 @@ export class App implements OnInit, OnDestroy {
       this.zIndex = Math.floor(metaData.z_coords.length / 2);
       this.appStateService.initializeClasses(metaData.classes);
     });
+
+    this.dataSubscription = this.interactionService.Data.pipe(skip(1)).subscribe((data) => {
+      console.log(data);
+    });
   }
 
   ngOnDestroy() {
@@ -41,6 +51,9 @@ export class App implements OnInit, OnDestroy {
       clearTimeout(this.hideVolumeViewerTimeoutId);
       this.hideVolumeViewerTimeoutId = null;
     }
+
+    this.dataSubscription?.unsubscribe();
+    this.interactionService.stopStreaming();
   }
 
   @HostListener('window:keydown', ['$event'])
