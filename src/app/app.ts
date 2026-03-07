@@ -2,14 +2,15 @@ import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@ang
 import { CuttingPlaneComponent } from "@components/cutting-plane/cutting-plane.component";
 import { ClassSelectorComponent } from '@components/class-selector/class-selector.component';
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
+import { SettingsComponent } from '@components/settings/settings.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { InteractionService } from '@services/interaction/interaction.service';
-import { skip, Subscription } from 'rxjs';
+import { distinctUntilChanged, skip, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [CuttingPlaneComponent, ClassSelectorComponent, VolumeViewerComponent],
+  imports: [CuttingPlaneComponent, ClassSelectorComponent, VolumeViewerComponent, SettingsComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -19,6 +20,7 @@ export class App implements OnInit, OnDestroy {
   private readonly appStateService = inject(AppStateService);
   private readonly interactionService = inject(InteractionService);
   private dataSubscription: Subscription | undefined;
+  private interactionStreamingSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -30,7 +32,15 @@ export class App implements OnInit, OnDestroy {
   protected classes: number[] = [];
 
   ngOnInit() {
-    this.interactionService.startStreaming();
+    this.interactionStreamingSubscription = this.appStateService.interactionStreamingActive$
+      .pipe(distinctUntilChanged())
+      .subscribe((isActive) => {
+        if (isActive) {
+          this.interactionService.startStreaming();
+          return;
+        }
+        this.interactionService.stopStreaming();
+      });
 
     this.apiService.getMeta().subscribe((metaData) => {
       this.xCoords = metaData.x_coords;
@@ -53,6 +63,7 @@ export class App implements OnInit, OnDestroy {
     }
 
     this.dataSubscription?.unsubscribe();
+    this.interactionStreamingSubscription?.unsubscribe();
     this.interactionService.stopStreaming();
   }
 
@@ -72,6 +83,9 @@ export class App implements OnInit, OnDestroy {
     }
     if (e.key === 't' || e.key === 'T') {
       this.appStateService.toggleShowOnlyCurrentSlicePoints();
+    }
+    if (e.key === 's' || e.key === 'S') {
+      this.appStateService.toggleSettingsPanelVisibility();
     }
   }
 

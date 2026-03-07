@@ -1,0 +1,17 @@
+<section class="settings" [class.is-visible]="isPanelVisible()">
+  <h2 class="settings__title">Settings</h2>
+
+  <div class="interaction-streaming">
+    <button type="button" class="interaction-streaming__toggle-button" (click)="toggleInteractionService()">
+        Interaction-Service: {{ isInteractionStreamingActive() ? 'On' : 'Off' }}
+    </button>
+    
+    @switch (interactionConnectionState) {
+        @case (0) {<div class="interaction-streaming__connection-status connected"></div>}
+        @case (1) {<div class="interaction-streaming__connection-status connecting"></div>}
+        @case (2) {<div class="interaction-streaming__connection-status disconnected"></div>}
+        @case (3) {<div class="interaction-streaming__connection-status error"></div>}
+        @default {<div class="interaction-streaming__connection-status"></div>}
+    }
+  </div>
+</section>

@@ -29,15 +29,16 @@
 
 .volume-viewer-layer {
   position: absolute;
-  top: 32px;
-  left: 32px;
+  top: 3rem;
+  left: 3rem;
   width: min(40vw, 560px);
   height: min(42vh, 360px);
   z-index: 3;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transition: opacity 220ms ease-out, visibility 0s linear 0s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: opacity 180ms ease-out, visibility 0s linear 0s;
 }
 
 .volume-viewer-layer.is-hidden {
