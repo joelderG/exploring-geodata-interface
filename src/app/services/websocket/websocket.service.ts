@@ -11,7 +11,7 @@ export abstract class WebSocketService<T> implements IConnectionState {
   public isConnected = new BehaviorSubject<boolean>(false);
   public isConnecting = new BehaviorSubject<boolean>(false);
 
-  private _websocketObserver: Observer<any>;
+  private _websocketObserver: Observer<MessageEvent>;
 
   protected _depthImageSubscription? : Subscription; 
   private _reconnectSubscription?: Subscription;
@@ -20,8 +20,7 @@ export abstract class WebSocketService<T> implements IConnectionState {
     'Content-Type': 'application/json'
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected Socket?: WebSocketSubject<any>;
+  protected Socket?: WebSocketSubject<unknown>;
 
   private readonly _streamDataRoute: string;
   
@@ -32,13 +31,13 @@ export abstract class WebSocketService<T> implements IConnectionState {
     this._streamDataRoute = route;
 
     this._websocketObserver = {
-      next: (val: any) => {
+      next: (val: MessageEvent) => {
         this.numFramesReceived++;
-        this.update(val as MessageEvent);
+        this.update(val);
         this.isConnected.next(true);
         this.isConnecting.next(false);
       },
-      error: (error: any) => {
+      error: (error: unknown) => {
         console.error(error);
         this.isConnected.next(false);
         this.isConnecting.next(false);
@@ -59,7 +58,8 @@ export abstract class WebSocketService<T> implements IConnectionState {
         filter(([connected, connecting]) => connected === false && connecting === false),
         tap(() => this.isConnecting.next(true)),
         delay(2000),
-        tap(() => {        
+        tap(() => {
+          this._depthImageSubscription?.unsubscribe();        
           this._depthImageSubscription = this.startSocket().subscribe(this._websocketObserver);
         })        
       ).subscribe(
@@ -73,6 +73,10 @@ export abstract class WebSocketService<T> implements IConnectionState {
 
   public stopStreaming() {
     this._reconnectSubscription?.unsubscribe();
+    this._depthImageSubscription?.unsubscribe();
+    this.Socket?.complete();
+    this.isConnected.next(false);
+    this.isConnecting.next(false);
   }
 
   protected abstract enableSocket(): Observable<object>;
@@ -80,16 +84,14 @@ export abstract class WebSocketService<T> implements IConnectionState {
   protected abstract disableSocket(): Observable<object>;
 
   private startSocket(): Observable<MessageEvent> {    
-    this.Socket = webSocket({
+    this.Socket = webSocket<unknown>({
       url: this._streamDataRoute,
       deserializer: (value) => value,
       closeObserver: {
         next: (val) => {
-          const closeMsg = `closed subscription to depth image service: ${val}`;
-          console.log(closeMsg);
-        },
-        error: (error: any) => {
-          console.error(error);
+          console.log(`closed: ${val}`);
+          this.isConnected.next(false);
+          this.isConnecting.next(false);
         }
       },
       openObserver: {
@@ -104,10 +106,10 @@ export abstract class WebSocketService<T> implements IConnectionState {
       }
     });
 
-    this.Socket?.next('Start');
-
     return this.enableSocket().pipe(
-      concatMap(() => this.Socket as Observable<MessageEvent>));
+      tap(() => this.Socket?.next('Start')),
+      concatMap(() => this.Socket as Observable<MessageEvent>)
+    );
   }
 
   protected abstract update(result: MessageEvent): void;
