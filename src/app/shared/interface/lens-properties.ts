@@ -17,19 +17,19 @@ export interface LensProperties {
 }
 
 export const DefaultLensProperties: LensProperties = {
-    CanvasOffset: {
-        X: 0,
-        Y: 0
-    },
-    Description: "",
-    LayerBackground: "",
-    LensImage: "",
-    LensOffset: {
-        X: 0,
-        Y: 0
-    },
-    TouchPosition: {
-        X: 0,
-        Y: 0
-    }
-}
+  CanvasOffset: {
+    X: 0,
+    Y: 0
+  },
+  Description: "",
+  LayerBackground: "",
+  LensImage: "",
+  LensOffset: {
+    X: 0,
+    Y: 0
+  },
+  TouchPosition: {
+    X: 0,
+    Y: 0
+  }
+};

@@ -1,9 +1,9 @@
 export function scale(number: number, inMin: number, inMax: number, outMin: number, outMax: number) {
-    return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-  }
+  return (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+}
   
   
-  /**
+/**
    * @brief This function is used to smooth jittered sensor readings.
    * 
    * @param raw_value the jittered sensor reading
@@ -13,30 +13,30 @@ export function scale(number: number, inMin: number, inMax: number, outMin: numb
    * 
    * @return smoothed sensor reading
    */
-  export function apply1DFilter(rawValue: number, weight: number, filteredValue: number): number {
-    return ((1.0 - weight) * filteredValue) + (weight * rawValue);
-  }
+export function apply1DFilter(rawValue: number, weight: number, filteredValue: number): number {
+  return ((1.0 - weight) * filteredValue) + (weight * rawValue);
+}
   
-  export function hexToRgb(hex: string) : RGBColor {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
+export function hexToRgb(hex: string) : RGBColor {
+  // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+  const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+  hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+    return r + r + g + g + b + b;
+  });
   
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : {
-      r: 1,
-      g: 1,
-      b: 1
-    };
-  }
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : {
+    r: 1,
+    g: 1,
+    b: 1
+  };
+}
 
-  export interface RGBColor {
+export interface RGBColor {
     r: number,
     g: number,
     b: number

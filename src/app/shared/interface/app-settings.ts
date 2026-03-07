@@ -9,7 +9,7 @@ export interface AppSettings {
   minDepth: number;
   maxDepth: number;
   streamNativeDepthImage: boolean;
-  lensMasks: Array<string>;
+  lensMasks: string[];
   enableIdleMode: boolean;
   useLogo: boolean;
   idleLogoImage: string;

@@ -8,8 +8,8 @@ export interface TextureResource {
     name: string;
     folder: string;
     type: TextureResourceType;
-    layers: Array<TextureLayer>;
-    idleLayers?: Array<TextureLayer>;
+    layers: TextureLayer[];
+    idleLayers?: TextureLayer[];
     numLayers: number;
     resX: number;
     resY: number;
