@@ -2,8 +2,8 @@ import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@ang
 import { CuttingPlaneComponent } from "@components/cutting-plane/cutting-plane.component";
 import { ClassSelectorComponent } from '@components/class-selector/class-selector.component';
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
-import { ApiService } from '@services/api-service/api.service';
-import { AppStateService } from '@services/app-state-service/app-state.service';
+import { ApiService } from '@services/api/api.service';
+import { AppStateService } from '@services/app-state/app-state.service';
 
 @Component({
   selector: 'app-root',

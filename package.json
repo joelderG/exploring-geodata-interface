@@ -55,6 +55,7 @@
     "@angular/compiler-cli": "^20.2.0",
     "@types/jasmine": "~5.1.0",
     "@types/plotly.js": "^3.0.10",
+    "@types/three": "^0.183.1",
     "angular-eslint": "21.0.1",
     "eslint": "^9.39.3",
     "jasmine-core": "~5.9.0",

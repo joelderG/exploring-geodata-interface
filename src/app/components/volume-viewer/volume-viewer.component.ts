@@ -1,10 +1,10 @@
 import { Component, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { ApiService } from '@services/api-service/api.service';
+import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { Data, Layout } from 'plotly.js';
-import { Volume } from '@services/api-service/api.types';
-import { ColorService } from '@services/color-service/color.service';
-import { AppStateService } from '@services/app-state-service/app-state.service';
+import { Volume } from '@services/api/api.types';
+import { ColorService } from '@services/color/color.service';
+import { AppStateService } from '@services/app-state/app-state.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({

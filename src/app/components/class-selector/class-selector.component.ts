@@ -1,6 +1,6 @@
 import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { AppStateService } from '@services/app-state-service/app-state.service';
-import { ColorService } from '@services/color-service/color.service';
+import { AppStateService } from '@services/app-state/app-state.service';
+import { ColorService } from '@services/color/color.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
