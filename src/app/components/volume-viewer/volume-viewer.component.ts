@@ -137,7 +137,10 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },
         yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.yCoords), Math.max(...this.yCoords)] },
         zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.zCoords), Math.max(...this.zCoords)] },
-        aspectmode: 'cube'
+        aspectmode: 'cube',
+        camera: {
+          eye: { x: -1.25, y: -1.25, z: 1.25 }
+        }
       } 
     };
 
