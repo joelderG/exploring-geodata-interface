@@ -1,4 +1,5 @@
 import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
+import { ClassInfo } from '@services/api/api.types';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { ColorService } from '@services/color/color.service';
 import { Subject, takeUntil } from 'rxjs';
@@ -11,6 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class ClassSelectorComponent implements OnInit, OnDestroy {
   @Input() classes: number[] = [];
+  @Input() classesInfo: ClassInfo[] = [];
 
   private readonly appStateService = inject(AppStateService);
   private readonly colorService = inject(ColorService);
