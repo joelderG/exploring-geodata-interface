@@ -7,6 +7,7 @@ import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { InteractionService } from '@services/interaction/interaction.service';
 import { distinctUntilChanged, skip, Subscription } from 'rxjs';
+import { ClassInfo } from '@services/api/api.types';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,7 @@ export class App implements OnInit, OnDestroy {
   protected yCoords: number[] = [];
   protected zCoords: number[] = [];
   protected classes: number[] = [];
+  protected classesInfo: ClassInfo[] = [];
 
   ngOnInit() {
     this.interactionStreamingSubscription = this.appStateService.interactionStreamingActive$
@@ -47,6 +49,7 @@ export class App implements OnInit, OnDestroy {
       this.yCoords = metaData.y_coords;
       this.zCoords = metaData.z_coords;
       this.classes = metaData.classes;
+      this.classesInfo = metaData.class_info;
       this.zIndex = Math.floor(metaData.z_coords.length / 2);
       this.appStateService.initializeClasses(metaData.classes);
     });
