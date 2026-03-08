@@ -1,10 +1,10 @@
 import { Component, inject, OnChanges, Input, ElementRef, ViewChild, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { ApiService } from '@services/api-service/api.service';
+import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { ColorScale, Data } from 'plotly.js';
-import { ColorService } from '@services/color-service/color.service';
+import { ColorService } from '@services/color/color.service';
 import { Subject, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
-import { AppStateService } from '@services/app-state-service/app-state.service';
+import { AppStateService } from '@services/app-state/app-state.service';
 
 interface DiscreteColorscaleConfig {
   colorscale: ColorScale;

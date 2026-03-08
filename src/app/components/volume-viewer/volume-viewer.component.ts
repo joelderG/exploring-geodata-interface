@@ -1,10 +1,10 @@
 import { Component, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { ApiService } from '@services/api-service/api.service';
+import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { Data, Layout } from 'plotly.js';
-import { Volume } from '@services/api-service/api.types';
-import { ColorService } from '@services/color-service/color.service';
-import { AppStateService } from '@services/app-state-service/app-state.service';
+import { Volume } from '@services/api/api.types';
+import { ColorService } from '@services/color/color.service';
+import { AppStateService } from '@services/app-state/app-state.service';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -137,7 +137,10 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },
         yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.yCoords), Math.max(...this.yCoords)] },
         zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.zCoords), Math.max(...this.zCoords)] },
-        aspectmode: 'cube'
+        aspectmode: 'cube',
+        camera: {
+          eye: { x: -1.25, y: -1.25, z: 1.25 }
+        }
       } 
     };
 

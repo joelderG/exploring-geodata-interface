@@ -1,4 +1,6 @@
 <div class="app-shell">
+  <app-settings></app-settings>
+
   <div class="cutting-plane-layer">
     <app-cutting-plane
       [zIndex]="zIndex"
@@ -19,6 +21,9 @@
   </div>
 
   <div class="class-selector-layer">
-    <app-class-selector [classes]="classes"></app-class-selector>
+    <app-class-selector 
+    [classes]="classes"
+    [classesInfo]="classesInfo">
+  </app-class-selector>
   </div>
 </div>
