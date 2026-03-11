@@ -10,6 +10,8 @@ import { distinctUntilChanged, skip, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
+import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './utils/cutting-plane.utils';
+
 @Component({
   selector: 'app-root',
   imports: [CuttingPlaneComponent, ClassSelectorComponent, VolumeViewerComponent, SettingsComponent],
@@ -30,6 +32,7 @@ export class App implements OnInit, OnDestroy {
   protected zIndex = 0;
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
+  // TODO: create VolumeCoordinates Object
   protected xCoords: number[] = [];
   protected yCoords: number[] = [];
   protected zCoords: number[] = [];
@@ -51,7 +54,7 @@ export class App implements OnInit, OnDestroy {
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
-        this.ensureSliceIndexInBounds();
+        ensureSliceIndexInBounds(this.zIndex, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords }, this.cuttingPlaneOrientation);
       });
 
     this.apiService.getMeta().subscribe((metaData) => {
@@ -84,13 +87,13 @@ export class App implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent) {
     if (e.key === 'ArrowUp') {
-      const axisLength = this.getAxisLengthForOrientation(this.cuttingPlaneOrientation);
+      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
       if (axisLength <= 0) return;
       const nextZIndex = Math.min(this.zIndex + 1, axisLength - 1);
       this.updateZIndex(nextZIndex);
     }
     if (e.key === 'ArrowDown') {
-      const axisLength = this.getAxisLengthForOrientation(this.cuttingPlaneOrientation);
+      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
       if (axisLength <= 0) return;
       const nextZIndex = Math.max(this.zIndex - 1, 0);
       this.updateZIndex(nextZIndex);
@@ -108,33 +111,12 @@ export class App implements OnInit, OnDestroy {
   }
 
   private updateZIndex(nextZIndex: number) {
-    const axisLength = this.getAxisLengthForOrientation(this.cuttingPlaneOrientation);
+    const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
     if (axisLength <= 0) return;
     const clamped = Math.min(Math.max(nextZIndex, 0), axisLength - 1);
     if (clamped === this.zIndex) return;
     this.zIndex = clamped;
     this.showVolumeViewerTemporarily();
-  }
-
-  private ensureSliceIndexInBounds() {
-    const axisLength = this.getAxisLengthForOrientation(this.cuttingPlaneOrientation);
-    if (axisLength <= 0) return;
-    const clamped = Math.min(Math.max(this.zIndex, 0), axisLength - 1);
-    if (clamped !== this.zIndex) {
-      this.zIndex = clamped;
-    }
-  }
-
-  private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
-    switch (orientation) {
-    case CuttingPlaneOrientation.XZ:
-      return this.yCoords.length;
-    case CuttingPlaneOrientation.YZ:
-      return this.xCoords.length;
-    case CuttingPlaneOrientation.XY:
-    default:
-      return this.zCoords.length;
-    }
   }
 
   private showVolumeViewerTemporarily() {

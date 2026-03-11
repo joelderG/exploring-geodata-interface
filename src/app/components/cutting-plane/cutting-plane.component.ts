@@ -8,6 +8,8 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 import { Volume } from '@services/api/api.types';
 
+import { ensureSliceIndexInBounds } from 'app/utils/cutting-plane.utils';
+
 interface DiscreteColorscaleConfig {
   colorscale: ColorScale;
   zmin: number;
@@ -187,7 +189,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
-    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    const safeIndex = ensureSliceIndexInBounds(index, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords }, orientation);
     switch (orientation) {
     case CuttingPlaneOrientation.XZ:
       return this.volume$.pipe(
@@ -220,23 +222,6 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
           orientation
         }))
       );
-    }
-  }
-
-  private clampIndexForOrientation(orientation: CuttingPlaneOrientation, index: number): number {
-    const maxIndex = this.getAxisLengthForOrientation(orientation) - 1;
-    return Math.min(Math.max(index, 0), Math.max(maxIndex, 0));
-  }
-
-  private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
-    switch (orientation) {
-    case CuttingPlaneOrientation.XZ:
-      return this.yCoords.length;
-    case CuttingPlaneOrientation.YZ:
-      return this.xCoords.length;
-    case CuttingPlaneOrientation.XY:
-    default:
-      return this.zCoords.length;
     }
   }
 
