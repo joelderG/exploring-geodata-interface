@@ -237,28 +237,28 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ: {
-        const yVal = this.yCoords[safeIndex];
-        const xGrid = Array.from({ length: zLen }, () => [...this.xCoords]);
-        const yGrid = Array.from({ length: zLen }, () => new Array(xLen).fill(yVal));
-        const zGrid = this.zCoords.map((zVal) => new Array(xLen).fill(zVal));
-        return { xGrid, yGrid, zGrid };
-      }
-      case CuttingPlaneOrientation.YZ: {
-        const xVal = this.xCoords[safeIndex];
-        const xGrid = Array.from({ length: zLen }, () => new Array(yLen).fill(xVal));
-        const yGrid = Array.from({ length: zLen }, () => [...this.yCoords]);
-        const zGrid = this.zCoords.map((zVal) => new Array(yLen).fill(zVal));
-        return { xGrid, yGrid, zGrid };
-      }
-      case CuttingPlaneOrientation.XY:
-      default: {
-        const zVal = this.zCoords[safeIndex];
-        const xGrid = Array.from({ length: yLen }, () => [...this.xCoords]);
-        const yGrid = this.yCoords.map((yVal) => new Array(xLen).fill(yVal));
-        const zGrid = Array.from({ length: yLen }, () => new Array(xLen).fill(zVal));
-        return { xGrid, yGrid, zGrid };
-      }
+    case CuttingPlaneOrientation.XZ: {
+      const yVal = this.yCoords[safeIndex];
+      const xGrid = Array.from({ length: zLen }, () => [...this.xCoords]);
+      const yGrid = Array.from({ length: zLen }, () => new Array(xLen).fill(yVal));
+      const zGrid = this.zCoords.map((zVal) => new Array(xLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
+    case CuttingPlaneOrientation.YZ: {
+      const xVal = this.xCoords[safeIndex];
+      const xGrid = Array.from({ length: zLen }, () => new Array(yLen).fill(xVal));
+      const yGrid = Array.from({ length: zLen }, () => [...this.yCoords]);
+      const zGrid = this.zCoords.map((zVal) => new Array(yLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
+    case CuttingPlaneOrientation.XY:
+    default: {
+      const zVal = this.zCoords[safeIndex];
+      const xGrid = Array.from({ length: yLen }, () => [...this.xCoords]);
+      const yGrid = this.yCoords.map((yVal) => new Array(xLen).fill(yVal));
+      const zGrid = Array.from({ length: yLen }, () => new Array(xLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
     }
   }
 
@@ -269,26 +269,26 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return this.yCoords.length;
-      case CuttingPlaneOrientation.YZ:
-        return this.xCoords.length;
-      case CuttingPlaneOrientation.XY:
-      default:
-        return this.zCoords.length;
+    case CuttingPlaneOrientation.XZ:
+      return this.yCoords.length;
+    case CuttingPlaneOrientation.YZ:
+      return this.xCoords.length;
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.zCoords.length;
     }
   }
 
   private getTargetAxisValue(orientation: CuttingPlaneOrientation, index: number): number {
     const safeIndex = this.clampIndexForOrientation(orientation, index);
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return this.yCoords[safeIndex];
-      case CuttingPlaneOrientation.YZ:
-        return this.xCoords[safeIndex];
-      case CuttingPlaneOrientation.XY:
-      default:
-        return this.zCoords[safeIndex];
+    case CuttingPlaneOrientation.XZ:
+      return this.yCoords[safeIndex];
+    case CuttingPlaneOrientation.YZ:
+      return this.xCoords[safeIndex];
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.zCoords[safeIndex];
     }
   }
 
@@ -298,13 +298,13 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     index: number
   ): number {
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return points.y[index];
-      case CuttingPlaneOrientation.YZ:
-        return points.x[index];
-      case CuttingPlaneOrientation.XY:
-      default:
-        return points.z[index];
+    case CuttingPlaneOrientation.XZ:
+      return points.y[index];
+    case CuttingPlaneOrientation.YZ:
+      return points.x[index];
+    case CuttingPlaneOrientation.XY:
+    default:
+      return points.z[index];
     }
   }
 }

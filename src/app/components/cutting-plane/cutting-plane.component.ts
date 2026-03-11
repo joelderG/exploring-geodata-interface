@@ -189,37 +189,37 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
     const safeIndex = this.clampIndexForOrientation(orientation, index);
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return this.volume$.pipe(
-          map((volume) => ({
-            data: this.buildXzSlice(volume, safeIndex),
-            axisValue: this.yCoords[safeIndex],
-            xCoords: this.xCoords,
-            yCoords: this.zCoords,
-            orientation
-          }))
-        );
-      case CuttingPlaneOrientation.YZ:
-        return this.volume$.pipe(
-          map((volume) => ({
-            data: this.buildYzSlice(volume, safeIndex),
-            axisValue: this.xCoords[safeIndex],
-            xCoords: this.yCoords,
-            yCoords: this.zCoords,
-            orientation
-          }))
-        );
-      case CuttingPlaneOrientation.XY:
-      default:
-        return this.apiService.getSlice(safeIndex).pipe(
-          map((slice) => ({
-            data: slice.data,
-            axisValue: slice.z_val,
-            xCoords: this.xCoords,
-            yCoords: this.yCoords,
-            orientation
-          }))
-        );
+    case CuttingPlaneOrientation.XZ:
+      return this.volume$.pipe(
+        map((volume) => ({
+          data: this.buildXzSlice(volume, safeIndex),
+          axisValue: this.yCoords[safeIndex],
+          xCoords: this.xCoords,
+          yCoords: this.zCoords,
+          orientation
+        }))
+      );
+    case CuttingPlaneOrientation.YZ:
+      return this.volume$.pipe(
+        map((volume) => ({
+          data: this.buildYzSlice(volume, safeIndex),
+          axisValue: this.xCoords[safeIndex],
+          xCoords: this.yCoords,
+          yCoords: this.zCoords,
+          orientation
+        }))
+      );
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.apiService.getSlice(safeIndex).pipe(
+        map((slice) => ({
+          data: slice.data,
+          axisValue: slice.z_val,
+          xCoords: this.xCoords,
+          yCoords: this.yCoords,
+          orientation
+        }))
+      );
     }
   }
 
@@ -230,13 +230,13 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
 
   private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return this.yCoords.length;
-      case CuttingPlaneOrientation.YZ:
-        return this.xCoords.length;
-      case CuttingPlaneOrientation.XY:
-      default:
-        return this.zCoords.length;
+    case CuttingPlaneOrientation.XZ:
+      return this.yCoords.length;
+    case CuttingPlaneOrientation.YZ:
+      return this.xCoords.length;
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.zCoords.length;
     }
   }
 
@@ -275,25 +275,25 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private getAxisLabels(orientation: CuttingPlaneOrientation, axisValue: number) {
     const valueText = axisValue.toFixed(1);
     switch (orientation) {
-      case CuttingPlaneOrientation.XZ:
-        return {
-          title: `XZ-Schnitt y = ${valueText} m`,
-          xLabel: 'X (m)',
-          yLabel: 'Z (m)'
-        };
-      case CuttingPlaneOrientation.YZ:
-        return {
-          title: `YZ-Schnitt x = ${valueText} m`,
-          xLabel: 'Y (m)',
-          yLabel: 'Z (m)'
-        };
-      case CuttingPlaneOrientation.XY:
-      default:
-        return {
-          title: `XY-Schnitt z = ${valueText} m`,
-          xLabel: 'X (m)',
-          yLabel: 'Y (m)'
-        };
+    case CuttingPlaneOrientation.XZ:
+      return {
+        title: `XZ-Schnitt y = ${valueText} m`,
+        xLabel: 'X (m)',
+        yLabel: 'Z (m)'
+      };
+    case CuttingPlaneOrientation.YZ:
+      return {
+        title: `YZ-Schnitt x = ${valueText} m`,
+        xLabel: 'Y (m)',
+        yLabel: 'Z (m)'
+      };
+    case CuttingPlaneOrientation.XY:
+    default:
+      return {
+        title: `XY-Schnitt z = ${valueText} m`,
+        xLabel: 'X (m)',
+        yLabel: 'Y (m)'
+      };
     }
   }
 }
