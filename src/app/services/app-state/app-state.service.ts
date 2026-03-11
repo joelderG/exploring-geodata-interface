@@ -11,6 +11,7 @@ export class AppStateService {
   private readonly showOnlyCurrentSlicePointsSubject = new BehaviorSubject<boolean>(false);
   private readonly settingsPanelVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly interactionStreamingActiveSubject = new BehaviorSubject<boolean>(false);
+  private readonly volumeViewerAlwaysVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly cuttingPlaneOrientationSubject = new BehaviorSubject<CuttingPlaneOrientation>(CuttingPlaneOrientation.XY);
 
   readonly classes$ = this.classesSubject.asObservable();
@@ -18,6 +19,7 @@ export class AppStateService {
   readonly showOnlyCurrentSlicePoints$ = this.showOnlyCurrentSlicePointsSubject.asObservable();
   readonly settingsPanelVisible$ = this.settingsPanelVisibleSubject.asObservable();
   readonly interactionStreamingActive$ = this.interactionStreamingActiveSubject.asObservable();
+  readonly volumeViewerAlwaysVisible$ = this.volumeViewerAlwaysVisibleSubject.asObservable();
   readonly cuttingPlaneOrientation$ = this.cuttingPlaneOrientationSubject.asObservable();
   readonly visibleClasses$ = combineLatest([this.classes$, this.classVisibility$]).pipe(
     map(([classes, visibility]) => classes.filter((_, index) => visibility[index] ?? true))
@@ -63,6 +65,14 @@ export class AppStateService {
 
   setInteractionStreamingActive(isActive: boolean): void {
     this.interactionStreamingActiveSubject.next(isActive);
+  }
+
+  toggleVolumeViewerAlwaysVisible(): void {
+    this.volumeViewerAlwaysVisibleSubject.next(!this.volumeViewerAlwaysVisibleSubject.value);
+  }
+
+  setVolumeViewerAlwaysVisible(isVisible: boolean): void {
+    this.volumeViewerAlwaysVisibleSubject.next(isVisible);
   }
 
   setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {

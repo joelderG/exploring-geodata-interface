@@ -24,6 +24,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       initialValue: false
     }
   );
+  protected readonly isVolumeViewerAlwaysVisible = toSignal(
+    this.appStateService.volumeViewerAlwaysVisible$,
+    {
+      initialValue: false
+    }
+  );
   protected readonly cuttingPlaneOrientation = toSignal(this.appStateService.cuttingPlaneOrientation$, {
     initialValue: CuttingPlaneOrientation.XY
   });
@@ -51,6 +57,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   protected toggleInteractionService(): void {
     this.appStateService.toggleInteractionStreamingActive();
+  }
+
+  protected toggleVolumeViewerVisibilityMode(): void {
+    this.appStateService.toggleVolumeViewerAlwaysVisible();
   }
 
   protected setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {

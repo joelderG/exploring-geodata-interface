@@ -27,12 +27,14 @@ export class App implements OnInit, OnDestroy {
   private dataSubscription: Subscription | undefined;
   private interactionStreamingSubscription: Subscription | undefined;
   private cuttingPlaneOrientationSubscription: Subscription | undefined;
+  private volumeViewerVisibilityModeSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
   protected zIndex = 0;
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
+  private isVolumeViewerAlwaysVisible = false;
   // TODO: add decent destructuring of object when needed 
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
@@ -54,6 +56,18 @@ export class App implements OnInit, OnDestroy {
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
         ensureSliceIndexInBounds(this.zIndex, this.coordinates, this.cuttingPlaneOrientation);
+      });
+
+    this.volumeViewerVisibilityModeSubscription = this.appStateService.volumeViewerAlwaysVisible$
+      .pipe(distinctUntilChanged())
+      .subscribe((isAlwaysVisible) => {
+        this.isVolumeViewerAlwaysVisible = isAlwaysVisible;
+        if (this.hideVolumeViewerTimeoutId) {
+          clearTimeout(this.hideVolumeViewerTimeoutId);
+          this.hideVolumeViewerTimeoutId = null;
+        }
+
+        this.isVolumeViewerVisible = isAlwaysVisible;
       });
 
     this.apiService.getMeta().subscribe((metaData) => {
@@ -80,6 +94,7 @@ export class App implements OnInit, OnDestroy {
     this.dataSubscription?.unsubscribe();
     this.interactionStreamingSubscription?.unsubscribe();
     this.cuttingPlaneOrientationSubscription?.unsubscribe();
+    this.volumeViewerVisibilityModeSubscription?.unsubscribe();
     this.interactionService.stopStreaming();
   }
 
@@ -119,6 +134,11 @@ export class App implements OnInit, OnDestroy {
   }
 
   private showVolumeViewerTemporarily() {
+    if (this.isVolumeViewerAlwaysVisible) {
+      this.isVolumeViewerVisible = true;
+      return;
+    }
+
     this.isVolumeViewerVisible = true;
 
     if (this.hideVolumeViewerTimeoutId) {

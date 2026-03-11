@@ -15,6 +15,15 @@
     }
   </div>
 
+  <div class="volume-viewer-visibility">
+    <button
+      type="button"
+      class="volume-viewer-visibility__toggle-button"
+      (click)="toggleVolumeViewerVisibilityMode()">
+      Volume Viewer: {{ isVolumeViewerAlwaysVisible() ? 'Always On' : 'Auto (3s)' }}
+    </button>
+  </div>
+
   <div class="cutting-plane">
     <div class="cutting-plane__label">Cutting plane</div>
     <div class="cutting-plane__buttons" role="group" aria-label="Cutting plane orientation">
