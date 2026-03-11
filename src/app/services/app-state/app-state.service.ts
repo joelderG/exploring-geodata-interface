@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
+import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
 @Injectable({
   providedIn: 'root'
@@ -10,12 +11,14 @@ export class AppStateService {
   private readonly showOnlyCurrentSlicePointsSubject = new BehaviorSubject<boolean>(false);
   private readonly settingsPanelVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly interactionStreamingActiveSubject = new BehaviorSubject<boolean>(false);
+  private readonly cuttingPlaneOrientationSubject = new BehaviorSubject<CuttingPlaneOrientation>(CuttingPlaneOrientation.XY);
 
   readonly classes$ = this.classesSubject.asObservable();
   readonly classVisibility$ = this.classVisibilitySubject.asObservable();
   readonly showOnlyCurrentSlicePoints$ = this.showOnlyCurrentSlicePointsSubject.asObservable();
   readonly settingsPanelVisible$ = this.settingsPanelVisibleSubject.asObservable();
   readonly interactionStreamingActive$ = this.interactionStreamingActiveSubject.asObservable();
+  readonly cuttingPlaneOrientation$ = this.cuttingPlaneOrientationSubject.asObservable();
   readonly visibleClasses$ = combineLatest([this.classes$, this.classVisibility$]).pipe(
     map(([classes, visibility]) => classes.filter((_, index) => visibility[index] ?? true))
   );
@@ -60,5 +63,9 @@ export class AppStateService {
 
   setInteractionStreamingActive(isActive: boolean): void {
     this.interactionStreamingActiveSubject.next(isActive);
+  }
+
+  setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {
+    this.cuttingPlaneOrientationSubject.next(orientation);
   }
 }
