@@ -4,9 +4,7 @@
   <div class="cutting-plane-layer">
     <app-cutting-plane
       [zIndex]="zIndex"
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
-      [zCoords]="zCoords"
+      [coordinates]="coordinates"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes">
     </app-cutting-plane>
@@ -14,9 +12,7 @@
 
   <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">
     <app-volume-viewer
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
-      [zCoords]="zCoords"
+      [coordinates]="coordinates"
       [classes]="classes"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [zIndex]="zIndex">

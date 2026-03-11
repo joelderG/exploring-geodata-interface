@@ -11,6 +11,7 @@ import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
 import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './utils/cutting-plane.utils';
+import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
 
 @Component({
   selector: 'app-root',
@@ -32,10 +33,7 @@ export class App implements OnInit, OnDestroy {
   protected zIndex = 0;
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
-  // TODO: create VolumeCoordinates Object
-  protected xCoords: number[] = [];
-  protected yCoords: number[] = [];
-  protected zCoords: number[] = [];
+  protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];
 
@@ -54,13 +52,13 @@ export class App implements OnInit, OnDestroy {
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
-        ensureSliceIndexInBounds(this.zIndex, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords }, this.cuttingPlaneOrientation);
+        ensureSliceIndexInBounds(this.zIndex, this.coordinates, this.cuttingPlaneOrientation);
       });
 
     this.apiService.getMeta().subscribe((metaData) => {
-      this.xCoords = metaData.x_coords;
-      this.yCoords = metaData.y_coords;
-      this.zCoords = metaData.z_coords;
+      this.coordinates.xCoordinates = metaData.x_coords;
+      this.coordinates.yCoordinates = metaData.y_coords;
+      this.coordinates.zCoordinates = metaData.z_coords;
       this.classes = metaData.classes;
       this.classesInfo = metaData.class_info;
       this.zIndex = Math.floor(metaData.z_coords.length / 2);
@@ -87,13 +85,13 @@ export class App implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent) {
     if (e.key === 'ArrowUp') {
-      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
+      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       if (axisLength <= 0) return;
       const nextZIndex = Math.min(this.zIndex + 1, axisLength - 1);
       this.updateZIndex(nextZIndex);
     }
     if (e.key === 'ArrowDown') {
-      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
+      const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       if (axisLength <= 0) return;
       const nextZIndex = Math.max(this.zIndex - 1, 0);
       this.updateZIndex(nextZIndex);
@@ -111,7 +109,7 @@ export class App implements OnInit, OnDestroy {
   }
 
   private updateZIndex(nextZIndex: number) {
-    const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords });
+    const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
     if (axisLength <= 0) return;
     const clamped = Math.min(Math.max(nextZIndex, 0), axisLength - 1);
     if (clamped === this.zIndex) return;

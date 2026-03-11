@@ -9,6 +9,7 @@ import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation'
 import { Volume } from '@services/api/api.types';
 
 import { ensureSliceIndexInBounds } from 'app/utils/cutting-plane.utils';
+import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
 
 interface DiscreteColorscaleConfig {
   colorscale: ColorScale;
@@ -32,9 +33,7 @@ interface SliceRenderData {
 })
 export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() zIndex = 0;
-  @Input() xCoords: number[] = [];
-  @Input() yCoords: number[] = [];
-  @Input() zCoords: number[] = [];
+  @Input() coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   @Input() classes: number[] = [];
   @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
@@ -96,7 +95,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private inputsReady() {
-    return this.xCoords.length > 0 && this.yCoords.length > 0 && this.zCoords.length > 0 && this.classes.length > 0;
+    return this.coordinates.xCoordinates.length > 0 && this.coordinates.yCoordinates.length > 0 && this.coordinates.zCoordinates.length > 0 && this.classes.length > 0;
   }
 
   private renderSlice(slice: SliceRenderData) {
@@ -189,15 +188,15 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
-    const safeIndex = ensureSliceIndexInBounds(index, { xCoordinates: this.xCoords, yCoordinates: this.yCoords, zCoordinates: this.zCoords }, orientation);
+    const safeIndex = ensureSliceIndexInBounds(index, { xCoordinates: this.coordinates.xCoordinates, yCoordinates: this.coordinates.yCoordinates, zCoordinates: this.coordinates.zCoordinates }, orientation);
     switch (orientation) {
     case CuttingPlaneOrientation.XZ:
       return this.volume$.pipe(
         map((volume) => ({
           data: this.buildXzSlice(volume, safeIndex),
-          axisValue: this.yCoords[safeIndex],
-          xCoords: this.xCoords,
-          yCoords: this.zCoords,
+          axisValue: this.coordinates.yCoordinates[safeIndex],
+          xCoords: this.coordinates.xCoordinates,
+          yCoords: this.coordinates.zCoordinates,
           orientation
         }))
       );
@@ -205,9 +204,9 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
       return this.volume$.pipe(
         map((volume) => ({
           data: this.buildYzSlice(volume, safeIndex),
-          axisValue: this.xCoords[safeIndex],
-          xCoords: this.yCoords,
-          yCoords: this.zCoords,
+          axisValue: this.coordinates.xCoordinates[safeIndex],
+          xCoords: this.coordinates.yCoordinates,
+          yCoords: this.coordinates.zCoordinates,
           orientation
         }))
       );
@@ -217,8 +216,8 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
         map((slice) => ({
           data: slice.data,
           axisValue: slice.z_val,
-          xCoords: this.xCoords,
-          yCoords: this.yCoords,
+          xCoords: this.coordinates.xCoordinates,
+          yCoords: this.coordinates.yCoordinates,
           orientation
         }))
       );

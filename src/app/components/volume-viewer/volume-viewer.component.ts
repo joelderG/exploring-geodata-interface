@@ -7,6 +7,7 @@ import { ColorService } from '@services/color/color.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { Subject, takeUntil } from 'rxjs';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
 
 @Component({
   selector: 'app-volume-viewer',
@@ -15,9 +16,7 @@ import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation'
   styleUrl: './volume-viewer.component.scss'
 })
 export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() xCoords: number[] = [];
-  @Input() yCoords: number[] = [];
-  @Input() zCoords: number[] = [];
+  @Input() coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   @Input() classes: number[] = [];
   @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
 
@@ -95,9 +94,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         for (let iy = 0; iy < ny; iy++) {
           for (let ix = 0; ix < nx; ix++) {
             if (volume.data[iz][iy][ix] === cls) {
-              xs.push(this.xCoords[ix]);
-              ys.push(this.yCoords[iy]);
-              zs.push(this.zCoords[iz]);
+              xs.push(this.coordinates.xCoordinates[ix]);
+              ys.push(this.coordinates.yCoordinates[iy]);
+              zs.push(this.coordinates.zCoordinates[iz]);
             }
           }
         }
@@ -135,9 +134,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       autosize: true,
       margin: { l: 0, r: 0, t: 40, b: 0 },
       scene: {
-        xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },
-        yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.yCoords), Math.max(...this.yCoords)] },
-        zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.zCoords), Math.max(...this.zCoords)] },
+        xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.coordinates.xCoordinates), Math.max(...this.coordinates.xCoordinates)] },
+        yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.coordinates.yCoordinates), Math.max(...this.coordinates.yCoordinates)] },
+        zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.coordinates.zCoordinates), Math.max(...this.coordinates.zCoordinates)] },
         aspectmode: 'cube',
         camera: {
           eye: { x: -1.25, y: -1.25, z: 1.25 }
@@ -157,9 +156,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   private inputsReady() {
     return (
-      this.xCoords.length > 0 &&
-      this.yCoords.length > 0 &&
-      this.zCoords.length > 0 &&
+      this.coordinates.xCoordinates.length > 0 &&
+      this.coordinates.yCoordinates.length > 0 &&
+      this.coordinates.zCoordinates.length > 0 &&
       this.classes.length > 0
     );
   }
@@ -228,9 +227,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   private buildPlaneGrid(orientation: CuttingPlaneOrientation, index: number) {
     const safeIndex = this.clampIndexForOrientation(orientation, index);
-    const xLen = this.xCoords.length;
-    const yLen = this.yCoords.length;
-    const zLen = this.zCoords.length;
+    const xLen = this.coordinates.xCoordinates.length;
+    const yLen = this.coordinates.yCoordinates.length;
+    const zLen = this.coordinates.zCoordinates.length;
 
     if (xLen === 0 || yLen === 0 || zLen === 0) {
       return { xGrid: [[]], yGrid: [[]], zGrid: [[]] };
@@ -238,24 +237,24 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
     switch (orientation) {
     case CuttingPlaneOrientation.XZ: {
-      const yVal = this.yCoords[safeIndex];
-      const xGrid = Array.from({ length: zLen }, () => [...this.xCoords]);
+      const yVal = this.coordinates.yCoordinates[safeIndex];
+      const xGrid = Array.from({ length: zLen }, () => [...this.coordinates.xCoordinates]);
       const yGrid = Array.from({ length: zLen }, () => new Array(xLen).fill(yVal));
-      const zGrid = this.zCoords.map((zVal) => new Array(xLen).fill(zVal));
+      const zGrid = this.coordinates.zCoordinates.map((zVal) => new Array(xLen).fill(zVal));
       return { xGrid, yGrid, zGrid };
     }
     case CuttingPlaneOrientation.YZ: {
-      const xVal = this.xCoords[safeIndex];
+      const xVal = this.coordinates.xCoordinates[safeIndex];
       const xGrid = Array.from({ length: zLen }, () => new Array(yLen).fill(xVal));
-      const yGrid = Array.from({ length: zLen }, () => [...this.yCoords]);
-      const zGrid = this.zCoords.map((zVal) => new Array(yLen).fill(zVal));
+      const yGrid = Array.from({ length: zLen }, () => [...this.coordinates.yCoordinates]);
+      const zGrid = this.coordinates.zCoordinates.map((zVal) => new Array(yLen).fill(zVal));
       return { xGrid, yGrid, zGrid };
     }
     case CuttingPlaneOrientation.XY:
     default: {
-      const zVal = this.zCoords[safeIndex];
-      const xGrid = Array.from({ length: yLen }, () => [...this.xCoords]);
-      const yGrid = this.yCoords.map((yVal) => new Array(xLen).fill(yVal));
+      const zVal = this.coordinates.zCoordinates[safeIndex];
+      const xGrid = Array.from({ length: yLen }, () => [...this.coordinates.xCoordinates]);
+      const yGrid = this.coordinates.yCoordinates.map((yVal) => new Array(xLen).fill(yVal));
       const zGrid = Array.from({ length: yLen }, () => new Array(xLen).fill(zVal));
       return { xGrid, yGrid, zGrid };
     }
@@ -270,12 +269,12 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
     switch (orientation) {
     case CuttingPlaneOrientation.XZ:
-      return this.yCoords.length;
+      return this.coordinates.yCoordinates.length;
     case CuttingPlaneOrientation.YZ:
-      return this.xCoords.length;
+      return this.coordinates.xCoordinates.length;
     case CuttingPlaneOrientation.XY:
     default:
-      return this.zCoords.length;
+      return this.coordinates.zCoordinates.length;
     }
   }
 
@@ -283,12 +282,12 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     const safeIndex = this.clampIndexForOrientation(orientation, index);
     switch (orientation) {
     case CuttingPlaneOrientation.XZ:
-      return this.yCoords[safeIndex];
+      return this.coordinates.yCoordinates[safeIndex];
     case CuttingPlaneOrientation.YZ:
-      return this.xCoords[safeIndex];
+      return this.coordinates.xCoordinates[safeIndex];
     case CuttingPlaneOrientation.XY:
     default:
-      return this.zCoords[safeIndex];
+      return this.coordinates.zCoordinates[safeIndex];
     }
   }
 
