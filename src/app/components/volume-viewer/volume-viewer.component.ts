@@ -6,6 +6,7 @@ import { Volume } from '@services/api/api.types';
 import { ColorService } from '@services/color/color.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { Subject, takeUntil } from 'rxjs';
+import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
 @Component({
   selector: 'app-volume-viewer',
@@ -18,6 +19,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   @Input() yCoords: number[] = [];
   @Input() zCoords: number[] = [];
   @Input() classes: number[] = [];
+  @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
 
   @Input() zIndex = 0;
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
@@ -63,7 +65,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (!this.isPlotInitialized) return;
 
-    if (changes['zIndex']) {
+    if (changes['zIndex'] || changes['cuttingPlaneOrientation']) {
       this.updateSlicePlane();
       if (this.showOnlyCurrentSlicePoints) {
         this.updateRenderedPoints();
@@ -115,14 +117,13 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       this.classPoints.push({ x: xs, y: ys, z: zs });
     });
 
-    const zVal = this.zCoords[this.zIndex];
-    const zPlane = this.yCoords.map(() => this.xCoords.map(() => zVal));
+    const { xGrid, yGrid, zGrid } = this.buildPlaneGrid(this.cuttingPlaneOrientation, this.zIndex);
 
     traces.push({
       type: 'surface',
-      x: this.xCoords,
-      y: this.yCoords,
-      z: zPlane,
+      x: xGrid,
+      y: yGrid,
+      z: zGrid,
       opacity: 0.25,
       showscale: false,
       colorscale: 'Greys',
@@ -169,13 +170,12 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateSlicePlane() {
-    const zVal = this.zCoords[this.zIndex];
-    const zPlane = this.yCoords.map(() => this.xCoords.map(() => zVal));
+    const { xGrid, yGrid, zGrid } = this.buildPlaneGrid(this.cuttingPlaneOrientation, this.zIndex);
 
     // Surface ist immer der letzte Trace (Index = classes.length)
     Plotly.restyle(
       this.plotElement.nativeElement,
-      { z: [zPlane] },
+      { x: [xGrid], y: [yGrid], z: [zGrid] },
       [this.classes.length]
     );
   }
@@ -192,7 +192,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateRenderedPoints() {
-    const targetZ = this.zCoords[this.zIndex];
+    const targetValue = this.getTargetAxisValue(this.cuttingPlaneOrientation, this.zIndex);
     const eps = 1e-9;
 
     this.classPoints.forEach((points, index) => {
@@ -210,7 +210,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       const zFiltered: number[] = [];
 
       for (let i = 0; i < points.z.length; i++) {
-        if (Math.abs(points.z[i] - targetZ) < eps) {
+        const axisValue = this.getAxisValueForOrientation(this.cuttingPlaneOrientation, points, i);
+        if (Math.abs(axisValue - targetValue) < eps) {
           xFiltered.push(points.x[i]);
           yFiltered.push(points.y[i]);
           zFiltered.push(points.z[i]);
@@ -223,5 +224,87 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         [index]
       );
     });
+  }
+
+  private buildPlaneGrid(orientation: CuttingPlaneOrientation, index: number) {
+    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    const xLen = this.xCoords.length;
+    const yLen = this.yCoords.length;
+    const zLen = this.zCoords.length;
+
+    if (xLen === 0 || yLen === 0 || zLen === 0) {
+      return { xGrid: [[]], yGrid: [[]], zGrid: [[]] };
+    }
+
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ: {
+        const yVal = this.yCoords[safeIndex];
+        const xGrid = Array.from({ length: zLen }, () => [...this.xCoords]);
+        const yGrid = Array.from({ length: zLen }, () => new Array(xLen).fill(yVal));
+        const zGrid = this.zCoords.map((zVal) => new Array(xLen).fill(zVal));
+        return { xGrid, yGrid, zGrid };
+      }
+      case CuttingPlaneOrientation.YZ: {
+        const xVal = this.xCoords[safeIndex];
+        const xGrid = Array.from({ length: zLen }, () => new Array(yLen).fill(xVal));
+        const yGrid = Array.from({ length: zLen }, () => [...this.yCoords]);
+        const zGrid = this.zCoords.map((zVal) => new Array(yLen).fill(zVal));
+        return { xGrid, yGrid, zGrid };
+      }
+      case CuttingPlaneOrientation.XY:
+      default: {
+        const zVal = this.zCoords[safeIndex];
+        const xGrid = Array.from({ length: yLen }, () => [...this.xCoords]);
+        const yGrid = this.yCoords.map((yVal) => new Array(xLen).fill(yVal));
+        const zGrid = Array.from({ length: yLen }, () => new Array(xLen).fill(zVal));
+        return { xGrid, yGrid, zGrid };
+      }
+    }
+  }
+
+  private clampIndexForOrientation(orientation: CuttingPlaneOrientation, index: number) {
+    const maxIndex = this.getAxisLengthForOrientation(orientation) - 1;
+    return Math.min(Math.max(index, 0), Math.max(maxIndex, 0));
+  }
+
+  private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return this.yCoords.length;
+      case CuttingPlaneOrientation.YZ:
+        return this.xCoords.length;
+      case CuttingPlaneOrientation.XY:
+      default:
+        return this.zCoords.length;
+    }
+  }
+
+  private getTargetAxisValue(orientation: CuttingPlaneOrientation, index: number): number {
+    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return this.yCoords[safeIndex];
+      case CuttingPlaneOrientation.YZ:
+        return this.xCoords[safeIndex];
+      case CuttingPlaneOrientation.XY:
+      default:
+        return this.zCoords[safeIndex];
+    }
+  }
+
+  private getAxisValueForOrientation(
+    orientation: CuttingPlaneOrientation,
+    points: { x: number[]; y: number[]; z: number[] },
+    index: number
+  ): number {
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return points.y[index];
+      case CuttingPlaneOrientation.YZ:
+        return points.x[index];
+      case CuttingPlaneOrientation.XY:
+      default:
+        return points.z[index];
+    }
   }
 }

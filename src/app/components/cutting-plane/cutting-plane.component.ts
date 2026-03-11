@@ -3,13 +3,23 @@ import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { ColorScale, Data } from 'plotly.js';
 import { ColorService } from '@services/color/color.service';
-import { Subject, distinctUntilChanged, filter, switchMap, takeUntil } from 'rxjs';
+import { Subject, distinctUntilChanged, filter, map, shareReplay, switchMap, takeUntil } from 'rxjs';
 import { AppStateService } from '@services/app-state/app-state.service';
+import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { Volume } from '@services/api/api.types';
 
 interface DiscreteColorscaleConfig {
   colorscale: ColorScale;
   zmin: number;
   zmax: number;
+}
+
+interface SliceRenderData {
+  data: number[][];
+  axisValue: number;
+  xCoords: number[];
+  yCoords: number[];
+  orientation: CuttingPlaneOrientation;
 }
 
 @Component({
@@ -22,7 +32,9 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() zIndex = 0;
   @Input() xCoords: number[] = [];
   @Input() yCoords: number[] = [];
+  @Input() zCoords: number[] = [];
   @Input() classes: number[] = [];
+  @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
   
   private readonly apiService = inject(ApiService);
@@ -30,38 +42,39 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private readonly appStateService = inject(AppStateService);
   private isPlotInitialized = false;
   private currentSliceData: number[][] = [];
-  private currentZVal = 0;
+  private currentSliceMeta: SliceRenderData | null = null;
   private visibleClasses: number[] = [];
   private fixedColorscaleConfig: DiscreteColorscaleConfig | null = null;
   private readonly destroy$ = new Subject<void>();
-  private readonly zIndex$ = new Subject<number>();
+  private readonly sliceRequest$ = new Subject<{ index: number; orientation: CuttingPlaneOrientation }>();
   private readonly noDataClass = -1;
+  private readonly volume$ = this.apiService.getVolume().pipe(shareReplay(1));
 
   ngOnInit() {
     this.appStateService.visibleClasses$
       .pipe(takeUntil(this.destroy$))
       .subscribe((visibleClasses) => {
         this.visibleClasses = visibleClasses;
-        if (this.isPlotInitialized && this.currentSliceData.length > 0) {
-          this.restylePlot(this.applyVisibilityFilter(this.currentSliceData), this.currentZVal);
+        if (this.isPlotInitialized && this.currentSliceData.length > 0 && this.currentSliceMeta) {
+          this.restylePlot(this.applyVisibilityFilter(this.currentSliceData), this.currentSliceMeta);
         }
       });
 
-    this.zIndex$
+    this.sliceRequest$
       .pipe(
-        distinctUntilChanged(),
+        distinctUntilChanged((a, b) => a.index === b.index && a.orientation === b.orientation),
         filter(() => this.inputsReady()),
-        switchMap((zIndex) => this.apiService.getSlice(zIndex)),
+        switchMap(({ index, orientation }) => this.getSliceData(index, orientation)),
         takeUntil(this.destroy$)
       )
       .subscribe((slice) => {
-        this.renderSlice(slice.data, slice.z_val);
+        this.renderSlice(slice);
       });
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['zIndex']) {
-      this.zIndex$.next(this.zIndex);
+    if (changes['zIndex'] || changes['cuttingPlaneOrientation']) {
+      this.sliceRequest$.next({ index: this.zIndex, orientation: this.cuttingPlaneOrientation });
     }
 
     if (changes['classes'] && this.isPlotInitialized) {
@@ -70,7 +83,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     if (!this.isPlotInitialized && this.inputsReady()) {
-      this.zIndex$.next(this.zIndex);
+      this.sliceRequest$.next({ index: this.zIndex, orientation: this.cuttingPlaneOrientation });
     }
   }
 
@@ -81,21 +94,21 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private inputsReady() {
-    return this.xCoords.length > 0 && this.yCoords.length > 0 && this.classes.length > 0;
+    return this.xCoords.length > 0 && this.yCoords.length > 0 && this.zCoords.length > 0 && this.classes.length > 0;
   }
 
-  private renderSlice(data: number[][], z_val: number) {
-    this.currentSliceData = data;
-    this.currentZVal = z_val;
-    const filteredData = this.applyVisibilityFilter(data);
+  private renderSlice(slice: SliceRenderData) {
+    this.currentSliceData = slice.data;
+    this.currentSliceMeta = slice;
+    const filteredData = this.applyVisibilityFilter(slice.data);
     this.ensureFixedColorscale();
     const colorscaleConfig = this.fixedColorscaleConfig;
     if (!colorscaleConfig) return;
 
     const trace: Partial<Data> = {
       type: 'heatmap',
-      x: this.xCoords,
-      y: this.yCoords,
+      x: slice.xCoords,
+      y: slice.yCoords,
       z: filteredData,
       colorscale: colorscaleConfig.colorscale,
       zmin: colorscaleConfig.zmin,
@@ -105,19 +118,22 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
     };
 
     if (!this.isPlotInitialized) {
-      this.createPlot(trace, z_val);
+      this.createPlot(trace, slice);
       this.isPlotInitialized = true;
     } else {
-      this.restylePlot(filteredData, z_val);
+      this.restylePlot(filteredData, slice);
     }
   }
 
-  private createPlot(trace: Partial<Data>, z_val: number) {
+  private createPlot(trace: Partial<Data>, slice: SliceRenderData) {
+    const { title, xLabel, yLabel } = this.getAxisLabels(slice.orientation, slice.axisValue);
     Plotly.newPlot(
       this.plotElement.nativeElement,
       [trace],
       {
-        title: { text: `XY-Schnitt z = ${z_val.toFixed(1)} m` },
+        title: { text: title },
+        xaxis: { title: { text: xLabel } },
+        yaxis: { title: { text: yLabel } },
         margin: { t: 40, b: 40, l: 40, r: 10 },
         autosize: true
       },
@@ -125,9 +141,14 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
     );
   }
 
-  private restylePlot(data: number[][], z_val: number) {
-    Plotly.restyle(this.plotElement.nativeElement, { z: [data] }, [0]);
-    Plotly.relayout(this.plotElement.nativeElement, { title: { text: `XY-Schnitt z = ${z_val.toFixed(1)} m` } });
+  private restylePlot(data: number[][], slice: SliceRenderData) {
+    const { title, xLabel, yLabel } = this.getAxisLabels(slice.orientation, slice.axisValue);
+    Plotly.restyle(this.plotElement.nativeElement, { z: [data], x: [slice.xCoords], y: [slice.yCoords] }, [0]);
+    Plotly.relayout(this.plotElement.nativeElement, {
+      title: { text: title },
+      xaxis: { title: { text: xLabel } },
+      yaxis: { title: { text: yLabel } }
+    });
   }
 
   private applyFixedColorscale() {
@@ -163,5 +184,116 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
       zmin,
       zmax
     };
+  }
+
+  private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
+    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return this.volume$.pipe(
+          map((volume) => ({
+            data: this.buildXzSlice(volume, safeIndex),
+            axisValue: this.yCoords[safeIndex],
+            xCoords: this.xCoords,
+            yCoords: this.zCoords,
+            orientation
+          }))
+        );
+      case CuttingPlaneOrientation.YZ:
+        return this.volume$.pipe(
+          map((volume) => ({
+            data: this.buildYzSlice(volume, safeIndex),
+            axisValue: this.xCoords[safeIndex],
+            xCoords: this.yCoords,
+            yCoords: this.zCoords,
+            orientation
+          }))
+        );
+      case CuttingPlaneOrientation.XY:
+      default:
+        return this.apiService.getSlice(safeIndex).pipe(
+          map((slice) => ({
+            data: slice.data,
+            axisValue: slice.z_val,
+            xCoords: this.xCoords,
+            yCoords: this.yCoords,
+            orientation
+          }))
+        );
+    }
+  }
+
+  private clampIndexForOrientation(orientation: CuttingPlaneOrientation, index: number): number {
+    const maxIndex = this.getAxisLengthForOrientation(orientation) - 1;
+    return Math.min(Math.max(index, 0), Math.max(maxIndex, 0));
+  }
+
+  private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return this.yCoords.length;
+      case CuttingPlaneOrientation.YZ:
+        return this.xCoords.length;
+      case CuttingPlaneOrientation.XY:
+      default:
+        return this.zCoords.length;
+    }
+  }
+
+  private buildXzSlice(volume: Volume, yIndex: number): number[][] {
+    const zLen = volume.data.length;
+    const xLen = volume.data[0]?.[0]?.length ?? 0;
+    const data: number[][] = new Array(zLen);
+
+    for (let iz = 0; iz < zLen; iz++) {
+      const row: number[] = new Array(xLen);
+      for (let ix = 0; ix < xLen; ix++) {
+        row[ix] = volume.data[iz][yIndex][ix];
+      }
+      data[iz] = row;
+    }
+
+    return data;
+  }
+
+  private buildYzSlice(volume: Volume, xIndex: number): number[][] {
+    const zLen = volume.data.length;
+    const yLen = volume.data[0]?.length ?? 0;
+    const data: number[][] = new Array(zLen);
+
+    for (let iz = 0; iz < zLen; iz++) {
+      const row: number[] = new Array(yLen);
+      for (let iy = 0; iy < yLen; iy++) {
+        row[iy] = volume.data[iz][iy][xIndex];
+      }
+      data[iz] = row;
+    }
+
+    return data;
+  }
+
+  private getAxisLabels(orientation: CuttingPlaneOrientation, axisValue: number) {
+    const valueText = axisValue.toFixed(1);
+    switch (orientation) {
+      case CuttingPlaneOrientation.XZ:
+        return {
+          title: `XZ-Schnitt y = ${valueText} m`,
+          xLabel: 'X (m)',
+          yLabel: 'Z (m)'
+        };
+      case CuttingPlaneOrientation.YZ:
+        return {
+          title: `YZ-Schnitt x = ${valueText} m`,
+          xLabel: 'Y (m)',
+          yLabel: 'Z (m)'
+        };
+      case CuttingPlaneOrientation.XY:
+      default:
+        return {
+          title: `XY-Schnitt z = ${valueText} m`,
+          xLabel: 'X (m)',
+          yLabel: 'Y (m)'
+        };
+    }
   }
 }

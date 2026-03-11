@@ -39,6 +39,7 @@
     flex-direction: row;
     align-items: center;
     column-gap: 12px;
+    margin-bottom: 1rem;
 
     &__connection-status {
         width: 12px;
@@ -76,6 +77,42 @@
 
         &:hover {
             background: #e9e9e9;
+        }
+    }
+}
+
+.cutting-plane {
+    display: flex;
+    flex-direction: column;
+    row-gap: 0.5rem;
+
+    &__label {
+        font-size: 0.95rem;
+        color: #3a3a3a;
+    }
+
+    &__buttons {
+        display: flex;
+        column-gap: 0.5rem;
+    }
+
+    &__button {
+        flex: 1;
+        padding: 0.5rem 0.6rem;
+        border: 1px solid #7f7f7f;
+        border-radius: 8px;
+        background: #f2f2f2;
+        font-size: 0.9rem;
+        cursor: pointer;
+
+        &:hover {
+            background: #e9e9e9;
+        }
+
+        &.is-active {
+            background: #2e2e2e;
+            border-color: #2e2e2e;
+            color: #ffffff;
         }
     }
 }

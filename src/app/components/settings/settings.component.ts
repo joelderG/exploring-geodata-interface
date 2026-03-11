@@ -4,6 +4,7 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { combineLatest, Subscription } from 'rxjs';
 import { ConnectionState } from 'app/shared/enum/connection-state';
 import { InteractionService } from '@services/interaction/interaction.service';
+import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
 @Component({
   selector: 'app-settings',
@@ -23,6 +24,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       initialValue: false
     }
   );
+  protected readonly cuttingPlaneOrientation = toSignal(this.appStateService.cuttingPlaneOrientation$, {
+    initialValue: CuttingPlaneOrientation.XY
+  });
+  protected readonly cuttingPlaneOrientationEnum = CuttingPlaneOrientation;
 
   public interactionConnectionState: ConnectionState = ConnectionState.Disconnected;
   private _interactionConnectionStateSubscription?: Subscription;
@@ -46,5 +51,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   protected toggleInteractionService(): void {
     this.appStateService.toggleInteractionStreamingActive();
+  }
+
+  protected setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {
+    this.appStateService.setCuttingPlaneOrientation(orientation);
   }
 }

@@ -14,4 +14,31 @@
         @default {<div class="interaction-streaming__connection-status"></div>}
     }
   </div>
+
+  <div class="cutting-plane">
+    <div class="cutting-plane__label">Cutting plane</div>
+    <div class="cutting-plane__buttons" role="group" aria-label="Cutting plane orientation">
+      <button
+        type="button"
+        class="cutting-plane__button"
+        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.XY"
+        (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.XY)">
+        XY
+      </button>
+      <button
+        type="button"
+        class="cutting-plane__button"
+        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.XZ"
+        (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.XZ)">
+        XZ
+      </button>
+      <button
+        type="button"
+        class="cutting-plane__button"
+        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.YZ"
+        (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.YZ)">
+        YZ
+      </button>
+    </div>
+  </div>
 </section>
