@@ -1,5 +1,5 @@
 import { CuttingPlaneOrientation } from "@shared/enum/cutting-plane-orientation";
-import { VolumeCoordinates } from "@shared/interface/sammlung-joel";
+import { VolumeCoordinates } from "@shared/interface/volume-coordinates";
 
 export function ensureSliceIndexInBounds(index: number, coordinates: VolumeCoordinates, orientation: CuttingPlaneOrientation) {
   const axisLength = getAxisLengthForOrientation(orientation, coordinates);

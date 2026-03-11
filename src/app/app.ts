@@ -10,8 +10,8 @@ import { distinctUntilChanged, skip, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
-import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './utils/cutting-plane.utils';
-import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
+import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './shared/util/cutting-plane.utils';
+import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
   selector: 'app-root',
@@ -33,6 +33,7 @@ export class App implements OnInit, OnDestroy {
   protected zIndex = 0;
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
+  // TODO: add decent destructuring of object when needed 
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];

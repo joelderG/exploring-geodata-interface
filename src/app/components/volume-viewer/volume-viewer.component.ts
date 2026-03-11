@@ -7,7 +7,7 @@ import { ColorService } from '@services/color/color.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { Subject, takeUntil } from 'rxjs';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
-import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
+import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
   selector: 'app-volume-viewer',

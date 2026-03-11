@@ -8,8 +8,8 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 import { Volume } from '@services/api/api.types';
 
-import { ensureSliceIndexInBounds } from 'app/utils/cutting-plane.utils';
-import { VolumeCoordinates } from '@shared/interface/sammlung-joel';
+import { ensureSliceIndexInBounds } from '@shared/util/cutting-plane.utils';
+import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 interface DiscreteColorscaleConfig {
   colorscale: ColorScale;
