@@ -10,20 +10,8 @@ import { Volume } from '@services/api/api.types';
 
 import { ensureSliceIndexInBounds } from '@shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
-
-interface DiscreteColorscaleConfig {
-  colorscale: ColorScale;
-  zmin: number;
-  zmax: number;
-}
-
-interface SliceRenderData {
-  data: number[][];
-  axisValue: number;
-  xCoords: number[];
-  yCoords: number[];
-  orientation: CuttingPlaneOrientation;
-}
+import { DiscreteColorscaleConfig } from '@shared/interface/discrete-colorscale-config';
+import { SliceRenderData } from '@shared/interface/slice-render-data';
 
 @Component({
   selector: 'app-cutting-plane',
