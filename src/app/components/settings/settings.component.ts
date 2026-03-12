@@ -1,6 +1,7 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { AppStateService } from '@services/app-state/app-state.service';
+import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { combineLatest, Subscription } from 'rxjs';
 import { ConnectionState } from 'app/shared/enum/connection-state';
 import { InteractionService } from '@services/interaction/interaction.service';
@@ -14,6 +15,7 @@ import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation'
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   private readonly appStateService = inject(AppStateService);
+  private readonly depthInteractionService = inject(DepthInteractionService);
   private readonly interactionService = inject(InteractionService);
   protected readonly isPanelVisible = toSignal(this.appStateService.settingsPanelVisible$, {
     initialValue: false
@@ -56,7 +58,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   protected toggleInteractionService(): void {
-    this.appStateService.toggleInteractionStreamingActive();
+    this.depthInteractionService.toggleStreaming();
   }
 
   protected toggleVolumeViewerVisibilityMode(): void {

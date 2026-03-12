@@ -5,8 +5,7 @@ import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.c
 import { SettingsComponent } from '@components/settings/settings.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
-import { InteractionService } from '@services/interaction/interaction.service';
-import { distinctUntilChanged, skip, Subscription } from 'rxjs';
+import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
@@ -23,9 +22,6 @@ export class App implements OnInit, OnDestroy {
   protected readonly title = signal('reflex-geo-explore');
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
-  private readonly interactionService = inject(InteractionService);
-  private dataSubscription: Subscription | undefined;
-  private interactionStreamingSubscription: Subscription | undefined;
   private cuttingPlaneOrientationSubscription: Subscription | undefined;
   private volumeViewerVisibilityModeSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
@@ -41,16 +37,6 @@ export class App implements OnInit, OnDestroy {
   protected classesInfo: ClassInfo[] = [];
 
   ngOnInit() {
-    this.interactionStreamingSubscription = this.appStateService.interactionStreamingActive$
-      .pipe(distinctUntilChanged())
-      .subscribe((isActive) => {
-        if (isActive) {
-          this.interactionService.startStreaming();
-          return;
-        }
-        this.interactionService.stopStreaming();
-      });
-
     this.cuttingPlaneOrientationSubscription = this.appStateService.cuttingPlaneOrientation$
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
@@ -80,9 +66,6 @@ export class App implements OnInit, OnDestroy {
       this.appStateService.initializeClasses(metaData.classes);
     });
 
-    this.dataSubscription = this.interactionService.Data.pipe(skip(1)).subscribe((data) => {
-      console.log(data);
-    });
   }
 
   ngOnDestroy() {
@@ -91,11 +74,8 @@ export class App implements OnInit, OnDestroy {
       this.hideVolumeViewerTimeoutId = null;
     }
 
-    this.dataSubscription?.unsubscribe();
-    this.interactionStreamingSubscription?.unsubscribe();
     this.cuttingPlaneOrientationSubscription?.unsubscribe();
     this.volumeViewerVisibilityModeSubscription?.unsubscribe();
-    this.interactionService.stopStreaming();
   }
 
   @HostListener('window:keydown', ['$event'])
