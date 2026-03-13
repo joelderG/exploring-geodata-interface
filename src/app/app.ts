@@ -9,7 +9,6 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
-import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
@@ -28,11 +27,11 @@ import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 })
 export class App implements OnInit, OnDestroy {
   protected readonly title = signal('reflex-geo-explore');
+
+  private readonly subscriptions: Subscription = new Subscription;
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
-  protected readonly isTouchpointsDebugVisible = toSignal(this.appStateService.touchpointsDebugVisible$, {
-    initialValue: false
-  });
+  protected isTouchpointsDebugVisible = false;
   private cuttingPlaneOrientationSubscription: Subscription | undefined;
   private volumeViewerVisibilityModeSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
@@ -48,14 +47,14 @@ export class App implements OnInit, OnDestroy {
   protected classesInfo: ClassInfo[] = [];
 
   ngOnInit() {
-    this.cuttingPlaneOrientationSubscription = this.appStateService.cuttingPlaneOrientation$
+    this.subscriptions.add(this.cuttingPlaneOrientationSubscription = this.appStateService.cuttingPlaneOrientation$
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
         ensureSliceIndexInBounds(this.zIndex, this.coordinates, this.cuttingPlaneOrientation);
-      });
+      }));
 
-    this.volumeViewerVisibilityModeSubscription = this.appStateService.volumeViewerAlwaysVisible$
+    this.subscriptions.add(this.volumeViewerVisibilityModeSubscription = this.appStateService.volumeViewerAlwaysVisible$
       .pipe(distinctUntilChanged())
       .subscribe((isAlwaysVisible) => {
         this.isVolumeViewerAlwaysVisible = isAlwaysVisible;
@@ -65,9 +64,9 @@ export class App implements OnInit, OnDestroy {
         }
 
         this.isVolumeViewerVisible = isAlwaysVisible;
-      });
+      }));
 
-    this.apiService.getMeta().subscribe((metaData) => {
+    this.subscriptions.add(this.apiService.getMeta().subscribe((metaData) => {
       this.coordinates.xCoordinates = metaData.x_coords;
       this.coordinates.yCoordinates = metaData.y_coords;
       this.coordinates.zCoordinates = metaData.z_coords;
@@ -75,8 +74,11 @@ export class App implements OnInit, OnDestroy {
       this.classesInfo = metaData.class_info;
       this.zIndex = Math.floor(metaData.z_coords.length / 2);
       this.appStateService.initializeClasses(metaData.classes);
-    });
+    }));
 
+    this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
+      this.isTouchpointsDebugVisible = isVisible;
+    }));
   }
 
   ngOnDestroy() {
