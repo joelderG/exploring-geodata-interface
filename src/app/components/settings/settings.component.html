@@ -1,9 +1,9 @@
-<section class="settings" [class.is-visible]="isPanelVisible()">
+<section class="settings" [class.is-visible]="isPanelVisible">
   <h2 class="settings__title">Settings</h2>
 
   <div class="interaction-streaming">
     <button type="button" class="interaction-streaming__toggle-button" (click)="toggleInteractionService()">
-        Interaction-Service: {{ isInteractionStreamingActive() ? 'On' : 'Off' }}
+        Interaction-Service: {{ isInteractionStreamingActive ? 'On' : 'Off' }}
     </button>
     
     @switch (interactionConnectionState) {
@@ -20,7 +20,7 @@
       type="button"
       class="volume-viewer-visibility__toggle-button"
       (click)="toggleVolumeViewerVisibilityMode()">
-      Volume Viewer: {{ isVolumeViewerAlwaysVisible() ? 'Always On' : 'Auto (3s)' }}
+      Volume Viewer: {{ isVolumeViewerAlwaysVisible ? 'Always On' : 'Auto (3s)' }}
     </button>
   </div>
 
@@ -29,7 +29,7 @@
       type="button"
       class="touchpoints-debug-visibility__toggle-button"
       (click)="toggleTouchpointsDebugVisibility()">
-      TouchPoints Debug: {{ isTouchpointsDebugVisible() ? 'On' : 'Off' }}
+      TouchPoints Debug: {{ isTouchpointsDebugVisible ? 'On' : 'Off' }}
     </button>
   </div>
 
@@ -39,21 +39,21 @@
       <button
         type="button"
         class="cutting-plane__button"
-        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.XY"
+        [class.is-active]="cuttingPlaneOrientation === cuttingPlaneOrientationEnum.XY"
         (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.XY)">
         XY
       </button>
       <button
         type="button"
         class="cutting-plane__button"
-        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.XZ"
+        [class.is-active]="cuttingPlaneOrientation === cuttingPlaneOrientationEnum.XZ"
         (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.XZ)">
         XZ
       </button>
       <button
         type="button"
         class="cutting-plane__button"
-        [class.is-active]="cuttingPlaneOrientation() === cuttingPlaneOrientationEnum.YZ"
+        [class.is-active]="cuttingPlaneOrientation === cuttingPlaneOrientationEnum.YZ"
         (click)="setCuttingPlaneOrientation(cuttingPlaneOrientationEnum.YZ)">
         YZ
       </button>
