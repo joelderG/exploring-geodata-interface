@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { InteractionService } from '@services/interaction/interaction.service';
 import { TouchPoint } from 'app/shared/model/touch-point';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-touchpoints-debug',
@@ -9,7 +10,8 @@ import { TouchPoint } from 'app/shared/model/touch-point';
   templateUrl: './touchpoints-debug.component.html',
   styleUrl: './touchpoints-debug.component.scss'
 })
-export class TouchpointsDebugComponent implements OnInit {
+export class TouchpointsDebugComponent implements OnInit, OnDestroy {
+  private readonly subscriptions: Subscription = new Subscription;
   private readonly interactionService = inject(InteractionService);
   private readonly depthInteractionService = inject(DepthInteractionService);
 
@@ -17,13 +19,17 @@ export class TouchpointsDebugComponent implements OnInit {
   protected deepestPoint: TouchPoint | undefined;
 
   ngOnInit() {
-    this.interactionService.Data.subscribe((points) => {
+    this.subscriptions.add(this.interactionService.Data.subscribe((points) => {
       this.touchPoints = points;
-    });
+    }));
 
-    this.depthInteractionService.currentDeepestPoint$.subscribe((point) => {
+    this.subscriptions.add(this.depthInteractionService.currentDeepestPoint$.subscribe((point) => {
       if (point) this.deepestPoint = point;
-    });
+    }));
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
   }
 
   protected formatCoord(value: number | null | undefined): string {

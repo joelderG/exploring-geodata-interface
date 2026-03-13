@@ -2,7 +2,7 @@ import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { ClassInfo } from '@services/api/api.types';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { ColorService } from '@services/color/color.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-class-selector',
@@ -14,20 +14,24 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
   @Input() classes: number[] = [];
   @Input() classesInfo: ClassInfo[] = [];
 
+  private readonly subscription: Subscription = new Subscription;
+
   private readonly appStateService = inject(AppStateService);
   private readonly colorService = inject(ColorService);
   private readonly destroy$ = new Subject<void>();
+  
   protected classVisible: boolean[] = [];
 
   ngOnInit() {
-    this.appStateService.classVisibility$
+    this.subscription.add(this.appStateService.classVisibility$
       .pipe(takeUntil(this.destroy$))
       .subscribe((classVisible) => {
         this.classVisible = classVisible;
-      });
+      }));
   }
 
   ngOnDestroy(): void {
+    this.subscription.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
   }
