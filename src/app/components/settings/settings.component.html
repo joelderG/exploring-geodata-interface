@@ -24,6 +24,15 @@
     </button>
   </div>
 
+  <div class="touchpoints-debug-visibility">
+    <button
+      type="button"
+      class="touchpoints-debug-visibility__toggle-button"
+      (click)="toggleTouchpointsDebugVisibility()">
+      TouchPoints Debug: {{ isTouchpointsDebugVisible() ? 'On' : 'Off' }}
+    </button>
+  </div>
+
   <div class="cutting-plane">
     <div class="cutting-plane__label">Cutting plane</div>
     <div class="cutting-plane__buttons" role="group" aria-label="Cutting plane orientation">

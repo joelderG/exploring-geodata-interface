@@ -19,6 +19,12 @@
     </app-volume-viewer>
   </div>
 
+  @if (isTouchpointsDebugVisible()) {
+    <div class="touchpoints-debug-layer">
+      <app-touchpoints-debug></app-touchpoints-debug>
+    </div>
+  }
+
   <div class="class-selector-layer">
     <app-class-selector 
     [classes]="classes"

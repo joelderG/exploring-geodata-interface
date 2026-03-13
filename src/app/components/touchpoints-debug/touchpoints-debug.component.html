@@ -1,0 +1,35 @@
+<section class="touchpoints-debug">
+  <div class="touchpoints-debug__header">TouchPoints Debug</div>
+
+  <div class="touchpoints-debug__block">
+    <div class="touchpoints-debug__label">Deepest TouchPoint</div>
+    @if (deepestPoint) {
+      <div class="touchpoints-debug__row">
+        <span class="touchpoints-debug__id">#{{ deepestPoint.TouchId }}</span>
+        <span class="touchpoints-debug__coord">X {{ formatCoord(deepestPoint.Position.X) }}</span>
+        <span class="touchpoints-debug__coord">Y {{ formatCoord(deepestPoint.Position.Y) }}</span>
+        <span class="touchpoints-debug__coord">Z {{ formatCoord(deepestPoint.Position.Z) }}</span>
+      </div>
+    } @else {
+      <div class="touchpoints-debug__empty">No deepest point</div>
+    }
+  </div>
+
+  <div class="touchpoints-debug__block">
+    <div class="touchpoints-debug__label">Current TouchPoints ({{ touchPoints.length }})</div>
+    @if (touchPoints.length === 0) {
+      <div class="touchpoints-debug__empty">No touch points</div>
+    } @else {
+      <div class="touchpoints-debug__list">
+        @for (tp of touchPoints; track tp.TouchId) {
+          <div class="touchpoints-debug__row">
+            <span class="touchpoints-debug__id">#{{ tp.TouchId }}</span>
+            <span class="touchpoints-debug__coord">X {{ formatCoord(tp.Position?.X) }}</span>
+            <span class="touchpoints-debug__coord">Y {{ formatCoord(tp.Position?.Y) }}</span>
+            <span class="touchpoints-debug__coord">Z {{ formatCoord(tp.Position?.Z) }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</section>

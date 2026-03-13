@@ -32,6 +32,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
       initialValue: false
     }
   );
+  protected readonly isTouchpointsDebugVisible = toSignal(
+    this.appStateService.touchpointsDebugVisible$,
+    {
+      initialValue: false
+    }
+  );
   protected readonly cuttingPlaneOrientation = toSignal(this.appStateService.cuttingPlaneOrientation$, {
     initialValue: CuttingPlaneOrientation.XY
   });
@@ -63,6 +69,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   protected toggleVolumeViewerVisibilityMode(): void {
     this.appStateService.toggleVolumeViewerAlwaysVisible();
+  }
+
+  protected toggleTouchpointsDebugVisibility(): void {
+    this.appStateService.toggleTouchpointsDebugVisible();
   }
 
   protected setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {

@@ -3,18 +3,26 @@ import { CuttingPlaneComponent } from "@components/cutting-plane/cutting-plane.c
 import { ClassSelectorComponent } from '@components/class-selector/class-selector.component';
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
 import { SettingsComponent } from '@components/settings/settings.component';
+import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
   selector: 'app-root',
-  imports: [CuttingPlaneComponent, ClassSelectorComponent, VolumeViewerComponent, SettingsComponent],
+  imports: [
+    CuttingPlaneComponent,
+    ClassSelectorComponent,
+    VolumeViewerComponent,
+    SettingsComponent,
+    TouchpointsDebugComponent
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -22,6 +30,9 @@ export class App implements OnInit, OnDestroy {
   protected readonly title = signal('reflex-geo-explore');
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
+  protected readonly isTouchpointsDebugVisible = toSignal(this.appStateService.touchpointsDebugVisible$, {
+    initialValue: false
+  });
   private cuttingPlaneOrientationSubscription: Subscription | undefined;
   private volumeViewerVisibilityModeSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
