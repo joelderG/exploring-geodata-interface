@@ -73,10 +73,6 @@ export class DepthInteractionService implements OnDestroy {
     }, candidates[0]);
   }
 
-  public getCurrentDeepestPointObsevable() {
-    return this.currentDeepestPoint$;
-  }
-
   public getCurrentTouchPoints(): TouchPoint[] {
     return [...this._currentTouchPoints];
   }

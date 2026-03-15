@@ -1,11 +1,11 @@
-import { Component, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { Data, Layout } from 'plotly.js';
 import { Volume } from '@services/api/api.types';
 import { ColorService } from '@services/color/color.service';
 import { AppStateService } from '@services/app-state/app-state.service';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
@@ -23,11 +23,10 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   @Input() zIndex = 0;
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
 
-  private readonly subscriptions: Subscription = new Subscription;
   private readonly apiService = inject(ApiService);
   private readonly colorService = inject(ColorService);
   private readonly appStateService = inject(AppStateService);
-  private readonly destroy$ = new Subject<void>();
+  private readonly destroyRef = inject(DestroyRef);
   private isPlotInitialized = false;
   private volume?: Volume;
   private classVisible: boolean[] = [];
@@ -35,28 +34,30 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   private showOnlyCurrentSlicePoints = false;
 
   ngOnInit() {
-    this.subscriptions.add(this.appStateService.classVisibility$
-      .pipe(takeUntil(this.destroy$))
+    this.appStateService.classVisibility$
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((classVisible) => {
         this.classVisible = classVisible;
         if (this.isPlotInitialized) {
           this.updateVisibility();
         }
-      }));
+      });
 
-    this.subscriptions.add(this.appStateService.showOnlyCurrentSlicePoints$
-      .pipe(takeUntil(this.destroy$))
+    this.appStateService.showOnlyCurrentSlicePoints$
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((showOnlyCurrentSlicePoints) => {
         this.showOnlyCurrentSlicePoints = showOnlyCurrentSlicePoints;
         if (this.isPlotInitialized) {
           this.updateRenderedPoints();
         }
-      }));
+      });
 
-    this.subscriptions.add(this.apiService.getVolume().subscribe((volume) => {
-      this.volume = volume;
-      this.tryBuildPlot();
-    }));
+    this.apiService.getVolume()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((volume) => {
+        this.volume = volume;
+        this.tryBuildPlot();
+      });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -75,9 +76,6 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
-    this.destroy$.next();
-    this.destroy$.complete();
     Plotly.purge(this.plotElement.nativeElement);
   }
 

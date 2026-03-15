@@ -32,8 +32,6 @@ export class App implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
   protected isTouchpointsDebugVisible = false;
-  private cuttingPlaneOrientationSubscription: Subscription | undefined;
-  private volumeViewerVisibilityModeSubscription: Subscription | undefined;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -47,14 +45,18 @@ export class App implements OnInit, OnDestroy {
   protected classesInfo: ClassInfo[] = [];
 
   ngOnInit() {
-    this.subscriptions.add(this.cuttingPlaneOrientationSubscription = this.appStateService.cuttingPlaneOrientation$
+    this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
-        ensureSliceIndexInBounds(this.zIndex, this.coordinates, this.cuttingPlaneOrientation);
+        this.zIndex = ensureSliceIndexInBounds(
+          this.zIndex,
+          this.coordinates,
+          this.cuttingPlaneOrientation
+        );
       }));
 
-    this.subscriptions.add(this.volumeViewerVisibilityModeSubscription = this.appStateService.volumeViewerAlwaysVisible$
+    this.subscriptions.add(this.appStateService.volumeViewerAlwaysVisible$
       .pipe(distinctUntilChanged())
       .subscribe((isAlwaysVisible) => {
         this.isVolumeViewerAlwaysVisible = isAlwaysVisible;
@@ -87,8 +89,7 @@ export class App implements OnInit, OnDestroy {
       this.hideVolumeViewerTimeoutId = null;
     }
 
-    this.cuttingPlaneOrientationSubscription?.unsubscribe();
-    this.volumeViewerVisibilityModeSubscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   @HostListener('window:keydown', ['$event'])

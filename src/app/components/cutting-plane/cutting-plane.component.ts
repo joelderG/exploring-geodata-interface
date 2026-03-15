@@ -38,6 +38,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private readonly sliceRequest$ = new Subject<{ index: number; orientation: CuttingPlaneOrientation }>();
   private readonly noDataClass = -1;
   private readonly volume$ = this.apiService.getVolume().pipe(shareReplay(1));
+  private readonly axisMismatchWarned = new Set<CuttingPlaneOrientation>();
 
   ngOnInit() {
     this.appStateService.visibleClasses$
@@ -176,51 +177,74 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
-    const safeIndex = ensureSliceIndexInBounds(index, { xCoordinates: this.coordinates.xCoordinates, yCoordinates: this.coordinates.yCoordinates, zCoordinates: this.coordinates.zCoordinates }, orientation);
     switch (orientation) {
     case CuttingPlaneOrientation.XZ:
       return this.volume$.pipe(
-        map((volume) => ({
-          data: this.buildXzSlice(volume, safeIndex),
-          axisValue: this.coordinates.yCoordinates[safeIndex],
-          xCoords: this.coordinates.xCoordinates,
-          yCoords: this.coordinates.zCoordinates,
-          orientation
-        }))
+        map((volume) => {
+          const dataIndex = this.clampIndexToVolume(index, orientation, volume);
+          const coordIndex = ensureSliceIndexInBounds(
+            dataIndex,
+            { xCoordinates: this.coordinates.xCoordinates, yCoordinates: this.coordinates.yCoordinates, zCoordinates: this.coordinates.zCoordinates },
+            orientation
+          );
+          return {
+            data: this.buildXzSlice(volume, dataIndex),
+            axisValue: this.coordinates.yCoordinates[coordIndex],
+            xCoords: this.coordinates.xCoordinates,
+            yCoords: this.coordinates.zCoordinates,
+            orientation
+          };
+        })
       );
     case CuttingPlaneOrientation.YZ:
       return this.volume$.pipe(
-        map((volume) => ({
-          data: this.buildYzSlice(volume, safeIndex),
-          axisValue: this.coordinates.xCoordinates[safeIndex],
-          xCoords: this.coordinates.yCoordinates,
-          yCoords: this.coordinates.zCoordinates,
-          orientation
-        }))
+        map((volume) => {
+          const dataIndex = this.clampIndexToVolume(index, orientation, volume);
+          const coordIndex = ensureSliceIndexInBounds(
+            dataIndex,
+            this.coordinates,
+            orientation
+          );
+          return {
+            data: this.buildYzSlice(volume, dataIndex),
+            axisValue: this.coordinates.xCoordinates[coordIndex],
+            xCoords: this.coordinates.yCoordinates,
+            yCoords: this.coordinates.zCoordinates,
+            orientation
+          };
+        })
       );
     case CuttingPlaneOrientation.XY:
     default:
-      return this.apiService.getSlice(safeIndex).pipe(
-        map((slice) => ({
-          data: slice.data,
-          axisValue: slice.z_val,
-          xCoords: this.coordinates.xCoordinates,
-          yCoords: this.coordinates.yCoordinates,
-          orientation
-        }))
-      );
+    { const safeIndex = ensureSliceIndexInBounds(
+      index,
+      this.coordinates,
+      orientation
+    );
+    return this.apiService.getSlice(safeIndex).pipe(
+      map((slice) => ({
+        data: slice.data,
+        axisValue: slice.z_val,
+        xCoords: this.coordinates.xCoordinates,
+        yCoords: this.coordinates.yCoordinates,
+        orientation
+      }))
+    ); }
     }
   }
 
   private buildXzSlice(volume: Volume, yIndex: number): number[][] {
     const zLen = volume.data.length;
+    const yLen = volume.data[0]?.length ?? 0;
     const xLen = volume.data[0]?.[0]?.length ?? 0;
+    if (zLen === 0 || yLen === 0 || xLen === 0) return [];
+    const safeYIndex = Math.min(Math.max(yIndex, 0), Math.max(yLen - 1, 0));
     const data: number[][] = new Array(zLen);
 
     for (let iz = 0; iz < zLen; iz++) {
       const row: number[] = new Array(xLen);
       for (let ix = 0; ix < xLen; ix++) {
-        row[ix] = volume.data[iz][yIndex][ix];
+        row[ix] = volume.data[iz][safeYIndex][ix];
       }
       data[iz] = row;
     }
@@ -231,17 +255,66 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private buildYzSlice(volume: Volume, xIndex: number): number[][] {
     const zLen = volume.data.length;
     const yLen = volume.data[0]?.length ?? 0;
+    const xLen = volume.data[0]?.[0]?.length ?? 0;
+    if (zLen === 0 || yLen === 0 || xLen === 0) return [];
+    const safeXIndex = Math.min(Math.max(xIndex, 0), Math.max(xLen - 1, 0));
     const data: number[][] = new Array(zLen);
 
     for (let iz = 0; iz < zLen; iz++) {
       const row: number[] = new Array(yLen);
       for (let iy = 0; iy < yLen; iy++) {
-        row[iy] = volume.data[iz][iy][xIndex];
+        row[iy] = volume.data[iz][iy][safeXIndex];
       }
       data[iz] = row;
     }
 
     return data;
+  }
+
+  private clampIndexToVolume(index: number, orientation: CuttingPlaneOrientation, volume: Volume): number {
+    const axisLength = this.getVolumeAxisLength(orientation, volume);
+    const maxIndex = Math.max(axisLength - 1, 0);
+    const safeIndex = Math.min(Math.max(index, 0), maxIndex);
+    this.warnIfAxisMismatch(orientation, volume);
+    return safeIndex;
+  }
+
+  private getVolumeAxisLength(orientation: CuttingPlaneOrientation, volume: Volume): number {
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ:
+      return volume.data[0]?.length ?? 0;
+    case CuttingPlaneOrientation.YZ:
+      return volume.data[0]?.[0]?.length ?? 0;
+    case CuttingPlaneOrientation.XY:
+    default:
+      return volume.data.length;
+    }
+  }
+
+  private getCoordinateAxisLength(orientation: CuttingPlaneOrientation): number {
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ:
+      return this.coordinates.yCoordinates.length;
+    case CuttingPlaneOrientation.YZ:
+      return this.coordinates.xCoordinates.length;
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.coordinates.zCoordinates.length;
+    }
+  }
+
+  private warnIfAxisMismatch(orientation: CuttingPlaneOrientation, volume: Volume): void {
+    if (this.axisMismatchWarned.has(orientation)) return;
+    const volumeLength = this.getVolumeAxisLength(orientation, volume);
+    const coordinateLength = this.getCoordinateAxisLength(orientation);
+    if (volumeLength !== coordinateLength) {
+      this.axisMismatchWarned.add(orientation);
+      console.warn('Volume axis length does not match coordinate length.', {
+        orientation,
+        volumeLength,
+        coordinateLength
+      });
+    }
   }
 
   private getAxisLabels(orientation: CuttingPlaneOrientation, axisValue: number) {

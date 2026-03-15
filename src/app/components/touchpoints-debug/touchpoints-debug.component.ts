@@ -24,7 +24,11 @@ export class TouchpointsDebugComponent implements OnInit, OnDestroy {
     }));
 
     this.subscriptions.add(this.depthInteractionService.currentDeepestPoint$.subscribe((point) => {
-      if (point) this.deepestPoint = point;
+      if (point) {
+        this.deepestPoint = point;
+        return;
+      }
+      this.deepestPoint = undefined;
     }));
   }
 
