@@ -4,21 +4,26 @@
   <div class="cutting-plane-layer">
     <app-cutting-plane
       [zIndex]="zIndex"
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
+      [coordinates]="coordinates"
+      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes">
     </app-cutting-plane>
   </div>
 
   <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">
     <app-volume-viewer
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
-      [zCoords]="zCoords"
+      [coordinates]="coordinates"
       [classes]="classes"
+      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [zIndex]="zIndex">
     </app-volume-viewer>
   </div>
+
+  @if (isTouchpointsDebugVisible) {
+    <div class="touchpoints-debug-layer">
+      <app-touchpoints-debug></app-touchpoints-debug>
+    </div>
+  }
 
   <div class="class-selector-layer">
     <app-class-selector 
