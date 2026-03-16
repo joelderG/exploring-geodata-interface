@@ -6,11 +6,12 @@ import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
+import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
-import { ensureSliceIndexInBounds, getAxisLengthForOrientation } from './shared/util/cutting-plane.utils';
+import { ensureSliceIndexInBounds, getAxisLengthForOrientation, normalizedZToSliceIndex } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
@@ -31,6 +32,7 @@ export class App implements OnInit, OnDestroy {
   private readonly subscriptions: Subscription = new Subscription;
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
+  private readonly depthInteractionService = inject(DepthInteractionService);
   protected isTouchpointsDebugVisible = false;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
@@ -81,6 +83,16 @@ export class App implements OnInit, OnDestroy {
     this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
       this.isTouchpointsDebugVisible = isVisible;
     }));
+
+    this.subscriptions.add(this.depthInteractionService.currentDeepestPoint$
+      .pipe(distinctUntilChanged((a, b) => (a?.TouchId === b?.TouchId) && (a?.Position?.Z === b?.Position?.Z)))
+      .subscribe((point) => {
+        const zNormalized = point?.Position?.Z;
+        const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
+        const nextZIndex = normalizedZToSliceIndex(zNormalized ?? NaN, axisLength);
+        if (nextZIndex === null) return;
+        this.updateZIndex(nextZIndex);
+      }));
   }
 
   ngOnDestroy() {

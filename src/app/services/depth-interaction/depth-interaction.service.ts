@@ -61,15 +61,15 @@ export class DepthInteractionService implements OnDestroy {
   }
 
   private findDeepestPoint(points: TouchPoint[]): TouchPoint | null {
-    const candidates = points.filter(tp => (tp?.Position?.Z ?? 0) < 0);
+    const candidates = points.filter(tp => Number.isFinite(tp?.Position?.Z));
     if (candidates.length === 0) {
       return null;
     }
 
     return candidates.reduce((deepest, current) => {
-      const deepestZ = deepest?.Position?.Z ?? 0;
-      const currentZ = current?.Position?.Z ?? 0;
-      return currentZ < deepestZ ? current : deepest;
+      const deepestZ = deepest?.Position?.Z ?? -Infinity;
+      const currentZ = current?.Position?.Z ?? -Infinity;
+      return currentZ > deepestZ ? current : deepest;
     }, candidates[0]);
   }
 

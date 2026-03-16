@@ -19,3 +19,9 @@ export function getAxisLengthForOrientation(orientation: CuttingPlaneOrientation
   }
 }
 
+export function normalizedZToSliceIndex(zNormalized: number, axisLength: number): number | null {
+  if (!Number.isFinite(zNormalized) || axisLength <= 0) return null;
+  const clamped = Math.min(Math.max(zNormalized, 0), 1);
+  const maxIndex = axisLength - 1;
+  return Math.round(clamped * maxIndex);
+}
