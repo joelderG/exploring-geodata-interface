@@ -7,6 +7,7 @@ import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpo
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
+import { GestureActionService } from './gestures/gesture-action.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
@@ -33,6 +34,7 @@ export class App implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
+  private readonly gestureActionService = inject(GestureActionService);
   protected isTouchpointsDebugVisible = false;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
