@@ -1,3 +1,4 @@
+// Maps gesture events to app state changes (e.g., cutting-plane orientation).
 import { Injectable, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { GestureEngineService } from './gesture-engine.service';
@@ -15,6 +16,12 @@ export class GestureActionService {
       this.gestureEngine.events$.subscribe((event) => {
         if (event.type === 'swipe-left-right') {
           this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.YZ);
+        }
+        if (event.type === 'swipe-top-bottom') {
+          this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.XY);
+        }
+        if (event.type === 'swipe-right-left') {
+          this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.XZ);
         }
       })
     );

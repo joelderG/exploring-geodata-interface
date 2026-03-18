@@ -1,5 +1,7 @@
 import { TouchFrame } from "./touch-frame";
 
+// Shared state for recognizers: per-touch history and last frame.
+
 export interface TouchSample {
     x: number;
     y: number;
