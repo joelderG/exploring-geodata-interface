@@ -11,7 +11,7 @@ import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 
-import { ensureSliceIndexInBounds, getAxisLengthForOrientation, normalizedZToSliceIndex } from './shared/util/cutting-plane.utils';
+import { ensureSliceIndexInBounds, getAxisLengthForOrientation, getInitialSliceIndexForOrientation, normalizedZToSliceIndex } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
@@ -51,8 +51,9 @@ export class App implements OnInit, OnDestroy {
       .pipe(distinctUntilChanged())
       .subscribe((orientation) => {
         this.cuttingPlaneOrientation = orientation;
+        const initialIndex = getInitialSliceIndexForOrientation(orientation, this.coordinates);
         this.zIndex = ensureSliceIndexInBounds(
-          this.zIndex,
+          initialIndex,
           this.coordinates,
           this.cuttingPlaneOrientation
         );
@@ -76,7 +77,7 @@ export class App implements OnInit, OnDestroy {
       this.coordinates.zCoordinates = metaData.z_coords;
       this.classes = metaData.classes;
       this.classesInfo = metaData.class_info;
-      this.zIndex = Math.floor(metaData.z_coords.length / 2);
+      this.zIndex = getInitialSliceIndexForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       this.appStateService.initializeClasses(metaData.classes);
     }));
 
@@ -88,8 +89,11 @@ export class App implements OnInit, OnDestroy {
       .pipe(distinctUntilChanged((a, b) => (a?.TouchId === b?.TouchId) && (a?.Position?.Z === b?.Position?.Z)))
       .subscribe((point) => {
         const zNormalized = point?.Position?.Z;
-        const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
-        const nextZIndex = normalizedZToSliceIndex(zNormalized ?? NaN, axisLength);
+        const nextZIndex = normalizedZToSliceIndex(
+          zNormalized ?? NaN,
+          this.cuttingPlaneOrientation,
+          this.coordinates
+        );
         if (nextZIndex === null) return;
         this.updateZIndex(nextZIndex);
       }));

@@ -69,7 +69,9 @@ export class DepthInteractionService implements OnDestroy {
     return candidates.reduce((deepest, current) => {
       const deepestZ = deepest?.Position?.Z ?? -Infinity;
       const currentZ = current?.Position?.Z ?? -Infinity;
-      return currentZ > deepestZ ? current : deepest;
+      const deepestDepth = deepestZ < 0 ? -deepestZ : deepestZ;
+      const currentDepth = currentZ < 0 ? -currentZ : currentZ;
+      return currentDepth > deepestDepth ? current : deepest;
     }, candidates[0]);
   }
 
