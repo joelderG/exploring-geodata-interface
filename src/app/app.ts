@@ -5,6 +5,7 @@ import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.c
 import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ExplorationWindowComponent } from '@components/exploration-window/exploration-window.component';
+import { ContextMenuComponent } from '@components/context-menu/context-menu.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
@@ -25,7 +26,8 @@ import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
     VolumeViewerComponent,
     SettingsComponent,
     TouchpointsDebugComponent,
-    ExplorationWindowComponent
+    ExplorationWindowComponent,
+    ContextMenuComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -40,6 +42,7 @@ export class App implements OnInit, OnDestroy {
   private readonly gestureActionService = inject(GestureActionService);
   protected isTouchpointsDebugVisible = false;
   protected deepestPoint: TouchPoint | null = null;
+  protected secondaryDeepPoint: TouchPoint | null = null;
   private readonly volumeViewerVisibilityMs = 3000;
   private hideVolumeViewerTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
@@ -103,6 +106,17 @@ export class App implements OnInit, OnDestroy {
         );
         if (nextZIndex === null) return;
         this.updateZIndex(nextZIndex);
+      }));
+
+    this.subscriptions.add(this.depthInteractionService.currentSecondaryPoint$
+      .pipe(distinctUntilChanged((a, b) => (
+        (a?.TouchId === b?.TouchId) &&
+        (a?.Position?.X === b?.Position?.X) &&
+        (a?.Position?.Y === b?.Position?.Y) &&
+        (a?.Position?.Z === b?.Position?.Z)
+      )))
+      .subscribe((point) => {
+        this.secondaryDeepPoint = point;
       }));
   }
 

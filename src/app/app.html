@@ -14,6 +14,10 @@
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [container]="cuttingPlaneLayer">
     </app-exploration-window>
+    <app-context-menu
+      [point]="secondaryDeepPoint"
+      [container]="cuttingPlaneLayer">
+    </app-context-menu>
   </div>
 
   <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">

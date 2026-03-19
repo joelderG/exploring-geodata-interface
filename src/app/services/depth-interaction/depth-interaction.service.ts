@@ -16,6 +16,8 @@ export class DepthInteractionService implements OnDestroy {
 
   private readonly currentDeepestPointSubject = new BehaviorSubject<TouchPoint | null>(null);
   public readonly currentDeepestPoint$ = this.currentDeepestPointSubject.asObservable();
+  private readonly currentSecondaryPointSubject = new BehaviorSubject<TouchPoint | null>(null);
+  public readonly currentSecondaryPoint$ = this.currentSecondaryPointSubject.asObservable();
 
   private _currentTouchPoints: TouchPoint[] = [];
 
@@ -53,11 +55,14 @@ export class DepthInteractionService implements OnDestroy {
 
     if (nextTouchPoints.length === 0) {
       this.currentDeepestPointSubject.next(null);
+      this.currentSecondaryPointSubject.next(null);
       return;
     }
 
     const deepest = this.findDeepestPoint(nextTouchPoints);
     this.currentDeepestPointSubject.next(deepest);
+    const secondary = this.findSecondaryDeepPoint(nextTouchPoints, deepest);
+    this.currentSecondaryPointSubject.next(secondary);
   }
 
   private findDeepestPoint(points: TouchPoint[]): TouchPoint | null {
@@ -67,12 +72,52 @@ export class DepthInteractionService implements OnDestroy {
     }
 
     return candidates.reduce((deepest, current) => {
-      const deepestZ = deepest?.Position?.Z ?? -Infinity;
-      const currentZ = current?.Position?.Z ?? -Infinity;
-      const deepestDepth = deepestZ < 0 ? -deepestZ : deepestZ;
-      const currentDepth = currentZ < 0 ? -currentZ : currentZ;
+      const deepestDepth = this.getDepthMagnitude(deepest);
+      const currentDepth = this.getDepthMagnitude(current);
       return currentDepth > deepestDepth ? current : deepest;
     }, candidates[0]);
+  }
+
+  private findSecondaryDeepPoint(points: TouchPoint[], deepest: TouchPoint | null): TouchPoint | null {
+    if (!deepest) {
+      return null;
+    }
+
+    const candidates = points.filter(tp => Number.isFinite(tp?.Position?.Z));
+    if (candidates.length < 2) {
+      return null;
+    }
+
+    const deepestDepth = this.getDepthMagnitude(deepest);
+    if (!Number.isFinite(deepestDepth)) {
+      return null;
+    }
+
+    let second: TouchPoint | null = null;
+    let secondDepth = -Infinity;
+
+    for (const candidate of candidates) {
+      if (candidate.TouchId === deepest.TouchId) continue;
+      const depth = this.getDepthMagnitude(candidate);
+      if (!Number.isFinite(depth)) continue;
+      if (depth > secondDepth) {
+        secondDepth = depth;
+        second = candidate;
+      }
+    }
+
+    if (!second || secondDepth >= deepestDepth) {
+      return null;
+    }
+
+    return second;
+  }
+
+  private getDepthMagnitude(point: TouchPoint | null | undefined): number {
+    const z = point?.Position?.Z;
+    if (z === undefined) return NaN;
+    if (!Number.isFinite(z)) return NaN;
+    return z < 0 ? -z : z;
   }
 
   public getCurrentTouchPoints(): TouchPoint[] {
