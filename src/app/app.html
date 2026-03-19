@@ -1,13 +1,19 @@
 <div class="app-shell">
   <app-settings></app-settings>
 
-  <div class="cutting-plane-layer">
+  <div class="cutting-plane-layer" #cuttingPlaneLayer>
     <app-cutting-plane
       [zIndex]="zIndex"
       [coordinates]="coordinates"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes">
     </app-cutting-plane>
+    <app-exploration-window
+      [deepestPoint]="deepestPoint"
+      [coordinates]="coordinates"
+      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
+      [container]="cuttingPlaneLayer">
+    </app-exploration-window>
   </div>
 
   <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">
