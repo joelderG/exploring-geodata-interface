@@ -10,10 +10,9 @@ export class SwipeRightLeftRecognizer implements GestureRecognizer {
   private activeTouchId: number | null = null;
 
   // Thresholds for a valid right-to-left swipe (normalized coords).
-  private readonly maxDurationMs = 350;
-  private readonly minDistance = 0.18;
-  private readonly maxVerticalDelta = 0.12;
-  private readonly minHorizontalDelta = 0.16;
+  private readonly maxDurationMs = 3500;
+  private readonly maxVerticalDelta = 0.2;
+  private readonly minHorizontalDelta = 0.2;
   private readonly cooldownMs = 400;
 
   update(frame: TouchFrame, state: GestureState): GestureEvent[] {
@@ -34,11 +33,9 @@ export class SwipeRightLeftRecognizer implements GestureRecognizer {
 
     const dx = last.x - first.x;
     const dy = last.y - first.y;
-    const dt = last.timeMs - first.timeMs;
+    const dt = (last.timeMs - first.timeMs);
 
     if (dt > this.maxDurationMs) return []; // too slow
-    const dist = Math.hypot(dx, dy);
-    if (dist < this.minDistance) return []; // too short
     if (Math.abs(dy) > this.maxVerticalDelta) return []; // not horizontal
     if (-dx < this.minHorizontalDelta) return []; // not right-to-left
 
@@ -49,7 +46,7 @@ export class SwipeRightLeftRecognizer implements GestureRecognizer {
     return [{
       type: 'swipe-right-left',
       timeMs: frame.timeMs,
-      payload: { dx, dy, dist, angle }
+      payload: { dx, dy, angle }
     }];
   }
 
