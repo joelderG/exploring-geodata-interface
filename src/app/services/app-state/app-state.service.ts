@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, combineLatest, map } from 'rxjs';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,7 @@ export class AppStateService {
   private readonly volumeViewerAlwaysVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly touchpointsDebugVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly cuttingPlaneOrientationSubject = new BehaviorSubject<CuttingPlaneOrientation>(CuttingPlaneOrientation.XY);
+  private readonly cuttingPlaneInteractionStateSubject = new BehaviorSubject<CuttingPlaneInteractionState>(CuttingPlaneInteractionState.Interactive);
 
   readonly classes$ = this.classesSubject.asObservable();
   readonly classVisibility$ = this.classVisibilitySubject.asObservable();
@@ -23,6 +25,7 @@ export class AppStateService {
   readonly volumeViewerAlwaysVisible$ = this.volumeViewerAlwaysVisibleSubject.asObservable();
   readonly touchpointsDebugVisible$ = this.touchpointsDebugVisibleSubject.asObservable();
   readonly cuttingPlaneOrientation$ = this.cuttingPlaneOrientationSubject.asObservable();
+  readonly cuttingPlaneInteractionState$ = this.cuttingPlaneInteractionStateSubject.asObservable();
   readonly visibleClasses$ = combineLatest([this.classes$, this.classVisibility$]).pipe(
     map(([classes, visibility]) => classes.filter((_, index) => visibility[index] ?? true))
   );
@@ -87,5 +90,10 @@ export class AppStateService {
 
   setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {
     this.cuttingPlaneOrientationSubject.next(orientation);
+  }
+
+  setCuttingPlaneInteractionState(state: CuttingPlaneInteractionState): void {
+    if (this.cuttingPlaneInteractionStateSubject.value === state) return;
+    this.cuttingPlaneInteractionStateSubject.next(state);
   }
 }

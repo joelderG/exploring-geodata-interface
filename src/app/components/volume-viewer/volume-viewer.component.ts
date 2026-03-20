@@ -110,7 +110,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         name: `Klasse ${cls}`,
         legendgroup: `cls${cls}`,
         visible: true,
-        showlegend: false
+        showlegend: false,
+        hoverinfo: 'skip'
       });
 
       this.classPoints.push({ x: xs, y: ys, z: zs });
@@ -127,12 +128,14 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       showscale: false,
       colorscale: 'Greys',
       name: 'Schnittebene',
-      showlegend: false
+      showlegend: false,
+      hoverinfo: 'skip'
     });
 
     const layout: Partial<Layout> = {
       autosize: true,
       margin: { l: 0, r: 0, t: 40, b: 0 },
+      hovermode: false,
       scene: {
         xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.coordinates.xCoordinates), Math.max(...this.coordinates.xCoordinates)] },
         yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.coordinates.yCoordinates), Math.max(...this.coordinates.yCoordinates)] },
