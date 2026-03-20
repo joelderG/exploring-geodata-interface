@@ -18,6 +18,7 @@ import { TouchPoint } from '@shared/model/touch-point';
 import { ensureSliceIndexInBounds, getAxisLengthForOrientation, getInitialSliceIndexForOrientation, normalizedZToSliceIndex } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { normalizedToCoordinateIndex, NormalizedIndexResult } from '@shared/util/normalized-coordinate.utils';
+import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 
 @Component({
   selector: 'app-root',
@@ -58,6 +59,7 @@ export class App implements OnInit, OnDestroy {
   protected contextMenuToggleEnabled = false;
   private contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
+  protected isCuttingPlaneFrozen = false;
 
   ngOnInit() {
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$
@@ -105,10 +107,17 @@ export class App implements OnInit, OnDestroy {
       this.isTouchpointsDebugVisible = isVisible;
     }));
 
+    this.subscriptions.add(this.appStateService.cuttingPlaneInteractionState$
+      .pipe(distinctUntilChanged())
+      .subscribe((state) => {
+        this.isCuttingPlaneFrozen = state === CuttingPlaneInteractionState.Frozen;
+      }));
+
     this.subscriptions.add(this.depthInteractionService.currentDeepestPoint$
       .pipe(distinctUntilChanged((a, b) => (a?.TouchId === b?.TouchId) && (a?.Position?.Z === b?.Position?.Z)))
       .subscribe((point) => {
         this.deepestPoint = point;
+        if (this.isCuttingPlaneFrozen) return;
         const zNormalized = point?.Position?.Z;
         const nextZIndex = normalizedZToSliceIndex(
           zNormalized ?? NaN,
@@ -144,12 +153,14 @@ export class App implements OnInit, OnDestroy {
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent) {
     if (e.key === 'ArrowUp') {
+      if (this.isCuttingPlaneFrozen) return;
       const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       if (axisLength <= 0) return;
       const nextZIndex = Math.min(this.zIndex + 1, axisLength - 1);
       this.updateZIndex(nextZIndex);
     }
     if (e.key === 'ArrowDown') {
+      if (this.isCuttingPlaneFrozen) return;
       const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       if (axisLength <= 0) return;
       const nextZIndex = Math.max(this.zIndex - 1, 0);

@@ -8,12 +8,14 @@
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes">
     </app-cutting-plane>
-    <app-exploration-window
-      [deepestPoint]="deepestPoint"
-      [coordinates]="coordinates"
-      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
-      [container]="cuttingPlaneLayer">
-    </app-exploration-window>
+    @if (!isCuttingPlaneFrozen) {
+      <app-exploration-window
+        [deepestPoint]="deepestPoint"
+        [coordinates]="coordinates"
+        [cuttingPlaneOrientation]="cuttingPlaneOrientation"
+        [container]="cuttingPlaneLayer">
+      </app-exploration-window>
+    }
     <app-context-menu
       [point]="secondaryDeepPoint"
       [container]="cuttingPlaneLayer"

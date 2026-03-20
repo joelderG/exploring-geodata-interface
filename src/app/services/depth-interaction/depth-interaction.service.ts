@@ -3,6 +3,7 @@ import { BehaviorSubject, distinctUntilChanged, Subscription } from 'rxjs';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { InteractionService } from '@services/interaction/interaction.service';
 import { TouchPoint } from 'app/shared/model/touch-point';
+import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 
 @Injectable({
   providedIn: 'root'
@@ -56,12 +57,16 @@ export class DepthInteractionService implements OnDestroy {
     if (nextTouchPoints.length === 0) {
       this.currentDeepestPointSubject.next(null);
       this.currentSecondaryPointSubject.next(null);
+      this.appStateService.setCuttingPlaneInteractionState(CuttingPlaneInteractionState.Interactive);
       return;
     }
 
     const deepest = this.findDeepestPoint(nextTouchPoints);
-    this.currentDeepestPointSubject.next(deepest);
     const secondary = this.findSecondaryDeepPoint(nextTouchPoints, deepest);
+    this.appStateService.setCuttingPlaneInteractionState(
+      secondary ? CuttingPlaneInteractionState.Frozen : CuttingPlaneInteractionState.Interactive
+    );
+    this.currentDeepestPointSubject.next(deepest);
     this.currentSecondaryPointSubject.next(secondary);
   }
 
