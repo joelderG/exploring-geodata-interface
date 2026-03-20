@@ -16,7 +16,11 @@
     </app-exploration-window>
     <app-context-menu
       [point]="secondaryDeepPoint"
-      [container]="cuttingPlaneLayer">
+      [container]="cuttingPlaneLayer"
+      [leftDisabled]="!contextMenuToggleEnabled"
+      [rightDisabled]="!contextMenuToggleEnabled"
+      (leftSelected)="onContextMenuLeftSelected()"
+      (rightSelected)="onContextMenuRightSelected()">
     </app-context-menu>
   </div>
 

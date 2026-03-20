@@ -88,11 +88,6 @@ export class DepthInteractionService implements OnDestroy {
       return null;
     }
 
-    const deepestDepth = this.getDepthMagnitude(deepest);
-    if (!Number.isFinite(deepestDepth)) {
-      return null;
-    }
-
     let second: TouchPoint | null = null;
     let secondDepth = -Infinity;
 
@@ -105,11 +100,6 @@ export class DepthInteractionService implements OnDestroy {
         second = candidate;
       }
     }
-
-    if (!second || secondDepth >= deepestDepth) {
-      return null;
-    }
-
     return second;
   }
 

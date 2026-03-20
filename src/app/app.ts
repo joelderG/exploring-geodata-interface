@@ -11,12 +11,13 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { GestureActionService } from './gestures/gesture-action.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
-import { ClassInfo } from '@services/api/api.types';
+import { ClassInfo, Volume } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
 import { TouchPoint } from '@shared/model/touch-point';
 
 import { ensureSliceIndexInBounds, getAxisLengthForOrientation, getInitialSliceIndexForOrientation, normalizedZToSliceIndex } from './shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
+import { normalizedToCoordinateIndex, NormalizedIndexResult } from '@shared/util/normalized-coordinate.utils';
 
 @Component({
   selector: 'app-root',
@@ -54,6 +55,9 @@ export class App implements OnInit, OnDestroy {
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];
+  protected contextMenuToggleEnabled = false;
+  private contextMenuClassIndex: number | null = null;
+  private volume: Volume | null = null;
 
   ngOnInit() {
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$
@@ -66,6 +70,7 @@ export class App implements OnInit, OnDestroy {
           this.coordinates,
           this.cuttingPlaneOrientation
         );
+        this.recomputeContextMenuText();
       }));
 
     this.subscriptions.add(this.appStateService.volumeViewerAlwaysVisible$
@@ -88,6 +93,12 @@ export class App implements OnInit, OnDestroy {
       this.classesInfo = metaData.class_info;
       this.zIndex = getInitialSliceIndexForOrientation(this.cuttingPlaneOrientation, this.coordinates);
       this.appStateService.initializeClasses(metaData.classes);
+      this.recomputeContextMenuText();
+    }));
+
+    this.subscriptions.add(this.apiService.getVolume().subscribe((volume) => {
+      this.volume = volume;
+      this.recomputeContextMenuText();
     }));
 
     this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
@@ -117,6 +128,7 @@ export class App implements OnInit, OnDestroy {
       )))
       .subscribe((point) => {
         this.secondaryDeepPoint = point;
+        this.recomputeContextMenuText();
       }));
   }
 
@@ -180,5 +192,66 @@ export class App implements OnInit, OnDestroy {
       this.isVolumeViewerVisible = false;
       this.hideVolumeViewerTimeoutId = null;
     }, this.volumeViewerVisibilityMs);
+  }
+
+  protected onContextMenuLeftSelected(): void {
+    this.toggleContextMenuClassVisibility();
+  }
+
+  protected onContextMenuRightSelected(): void {
+    this.toggleContextMenuClassVisibility();
+  }
+
+  private toggleContextMenuClassVisibility(): void {
+    if (this.contextMenuClassIndex === null) return;
+    this.appStateService.toggleClassVisibilityAtIndex(this.contextMenuClassIndex);
+  }
+
+  private recomputeContextMenuText(): void {
+    const classValue = this.getClassAtPoint(this.secondaryDeepPoint);
+    if (classValue === null) {
+      this.contextMenuClassIndex = null;
+      this.contextMenuToggleEnabled = false;
+      return;
+    }
+
+    const classIndex = this.classes.indexOf(classValue);
+    this.contextMenuClassIndex = classIndex >= 0 ? classIndex : null;
+    this.contextMenuToggleEnabled = this.contextMenuClassIndex !== null;
+  }
+
+  private getClassLabel(classValue: number, classIndex: number | null): string {
+    if (classIndex !== null && classIndex >= 0) {
+      const info = this.classesInfo[classIndex];
+      if (info?.name) return info.name;
+      if (info?.id) return info.id;
+    }
+    return `${classValue}`;
+  }
+
+  private getClassAtPoint(point: TouchPoint | null): number | null {
+    if (!point || !this.volume) return null;
+
+    const x = normalizedToCoordinateIndex(point.Position.X, this.coordinates.xCoordinates, { range: 'autoSigned' });
+    const y = normalizedToCoordinateIndex(point.Position.Y, this.coordinates.yCoordinates, { range: 'autoSigned' });
+    const z = normalizedToCoordinateIndex(point.Position.Z, this.coordinates.zCoordinates, {
+      range: 'depth',
+      invert: this.cuttingPlaneOrientation === CuttingPlaneOrientation.XY
+    });
+
+    if (!x || !y || !z) return null;
+    return this.getClassAt(this.volume, x, y, z);
+  }
+
+  private getClassAt(
+    volume: Volume,
+    x: NormalizedIndexResult,
+    y: NormalizedIndexResult,
+    z: NormalizedIndexResult
+  ): number | null {
+    const zPlane = volume.data[z.index];
+    const yRow = zPlane?.[y.index];
+    const value = yRow?.[x.index];
+    return typeof value === 'number' ? value : null;
   }
 }

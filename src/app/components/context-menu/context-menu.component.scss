@@ -4,15 +4,15 @@
   position: absolute;
   z-index: 6;
   pointer-events: none;
-  transform: translate(12px, 12px);
+  transform: translate(-50%, -50%);
 }
 
 .context-menu {
-  min-width: 160px;
+  min-width: 240px;
   background: $color-white;
   border: 1px solid $color-grey-dark;
-  border-radius: 10px;
-  padding: 10px 12px;
+  border-radius: 2px;
+  padding: 10px 12px 12px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
   display: grid;
   gap: 6px;
@@ -29,22 +29,41 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.context-menu__item {
-  appearance: none;
-  border: none;
-  background: transparent;
-  text-align: left;
-  font-size: 14px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  color: $color-grey-dark;
-  transition: background 120ms ease-out, color 120ms ease-out;
+.context-menu__options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
-.context-menu__item:hover,
-.context-menu__item:focus-visible {
+.context-menu__option {
+  appearance: none;
+  border: none;
+  background: rgba(0, 0, 0, 0.03);
+  text-align: center;
+  font-size: 14px;
+  padding: 10px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  color: $color-grey-dark;
+  transition: background 120ms ease-out, color 120ms ease-out, opacity 120ms ease-out;
+}
+
+.context-menu__option--left {
+  text-align: left;
+}
+
+.context-menu__option--right {
+  text-align: right;
+}
+
+.context-menu__option:hover,
+.context-menu__option:focus-visible {
   background: rgba(0, 0, 0, 0.08);
   color: $color-black;
   outline: none;
+}
+
+.context-menu__option:disabled {
+  cursor: default;
+  opacity: 0.5;
 }

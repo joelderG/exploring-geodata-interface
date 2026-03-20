@@ -1,9 +1,11 @@
 import {
   Component,
+  EventEmitter,
   HostBinding,
   Input,
   OnChanges,
   OnDestroy,
+  Output,
   SimpleChanges
 } from '@angular/core';
 import { TouchPoint } from '@shared/model/touch-point';
@@ -18,6 +20,11 @@ import { normalizedToDisplayPosition } from '@shared/util/normalized-coordinate.
 export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Input() point: TouchPoint | null = null;
   @Input() container: HTMLElement | null = null;
+  @Input() leftDisabled = false;
+  @Input() rightDisabled = false;
+
+  @Output() leftSelected = new EventEmitter<void>();
+  @Output() rightSelected = new EventEmitter<void>();
 
   @HostBinding('style.left.px')
   protected hostLeft: number | null = null;
@@ -106,5 +113,15 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   private updateVisibility(): void {
     const hasPosition = Number.isFinite(this.hostLeft ?? NaN) && Number.isFinite(this.hostTop ?? NaN);
     this.hostDisplay = this.point && hasPosition ? 'block' : 'none';
+  }
+
+  protected onLeftSelected(): void {
+    if (this.leftDisabled) return;
+    this.leftSelected.emit();
+  }
+
+  protected onRightSelected(): void {
+    if (this.rightDisabled) return;
+    this.rightSelected.emit();
   }
 }

@@ -1,8 +1,23 @@
 @if (point) {
   <div class="context-menu" role="menu" aria-label="Context menu">
     <div class="context-menu__title">Context Menu</div>
-    <button class="context-menu__item" type="button" role="menuitem">Inspect</button>
-    <button class="context-menu__item" type="button" role="menuitem">Focus</button>
-    <button class="context-menu__item" type="button" role="menuitem">Clear</button>
+    <div class="context-menu__options" role="presentation">
+      <button
+        class="context-menu__option context-menu__option--left"
+        type="button"
+        role="menuitem"
+        [disabled]="leftDisabled"
+        (click)="onLeftSelected()">
+        Sichtbarkeit der Gesteinsklasse Umschalten
+      </button>
+      <button
+        class="context-menu__option context-menu__option--right"
+        type="button"
+        role="menuitem"
+        [disabled]="rightDisabled"
+        (click)="onRightSelected()">
+        Nur diese Gesteinsklasse anzeigen
+      </button>
+    </div>
   </div>
 }
