@@ -12,53 +12,53 @@
   font-size: 0.8rem;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   width: min(360px, 70vw);
-}
 
-.touchpoints-debug__header {
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
+  &__header {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
 
-.touchpoints-debug__block {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
+  &__block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
 
-.touchpoints-debug__label {
-  color: $color-grey-dark;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.7rem;
-}
+  &__label {
+    color: $color-grey-dark;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.7rem;
+  }
 
-.touchpoints-debug__list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  max-height: 240px;
-  overflow: auto;
-  padding-right: 4px;
-}
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-height: 240px;
+    overflow: auto;
+    padding-right: 4px;
+  }
 
-.touchpoints-debug__row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-}
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
 
-.touchpoints-debug__id {
-  font-weight: 600;
-  color: $primary-color-light;
-}
+  &__id {
+    font-weight: 600;
+    color: $primary-color-light;
+  }
 
-.touchpoints-debug__coord {
-  background: rgba(255, 255, 255, 0.08);
-  padding: 0.12rem 0.35rem;
-  border-radius: 6px;
-}
+  &__coord {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.12rem 0.35rem;
+    border-radius: 6px;
+  }
 
-.touchpoints-debug__empty {
-  color: $color-black;
+  &__empty {
+    color: $color-black;
+  }
 }

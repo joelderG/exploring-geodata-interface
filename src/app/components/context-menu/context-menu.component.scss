@@ -12,58 +12,53 @@
   background: $color-white;
   border: 1px solid $color-grey-dark;
   border-radius: 2px;
-  padding: 10px 12px 12px;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  padding: 10px 12px 12px;
   display: grid;
-  gap: 6px;
+  gap: 10px;
   pointer-events: auto;
-}
 
-.context-menu__title {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: $primary-color;
-  font-weight: 600;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
+  &__title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: $primary-color;
+    font-weight: 600;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
 
-.context-menu__options {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-}
+  &__option {
+    appearance: none;
+    border: none;
+    background: rgba(0, 0, 0, 0.03);
+    // background: $color-white;
+    text-align: center;
+    font-size: 14px;
+    padding: 20px 8px;
+    width: 140px;
+    height: 140px;
+    border-radius: 360px;
+    cursor: pointer;
+    color: $color-grey-dark;
+    transition: background 120ms ease-out, color 120ms ease-out, opacity 120ms ease-out;
 
-.context-menu__option {
-  appearance: none;
-  border: none;
-  background: rgba(0, 0, 0, 0.03);
-  text-align: center;
-  font-size: 14px;
-  padding: 10px 8px;
-  border-radius: 2px;
-  cursor: pointer;
-  color: $color-grey-dark;
-  transition: background 120ms ease-out, color 120ms ease-out, opacity 120ms ease-out;
-}
+    &--left {
+      text-align: center;
+    }
 
-.context-menu__option--left {
-  text-align: left;
-}
+    &--right {
+      text-align: center;
+    }
 
-.context-menu__option--right {
-  text-align: right;
-}
+    &:hover {
+      background-color: $primary-color-light2;
+    }
+  }
 
-.context-menu__option:hover,
-.context-menu__option:focus-visible {
-  background: rgba(0, 0, 0, 0.08);
-  color: $color-black;
-  outline: none;
-}
-
-.context-menu__option:disabled {
-  cursor: default;
-  opacity: 0.5;
+  &__options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 64px;
+  }
 }
