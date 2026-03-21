@@ -60,6 +60,7 @@ export class App implements OnInit, OnDestroy {
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];
+  protected visibleClassIndices: number[] | null = null;
   protected contextMenuToggleEnabled = false;
   private contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
@@ -279,5 +280,9 @@ export class App implements OnInit, OnDestroy {
     const yRow = zPlane?.[y.index];
     const value = yRow?.[x.index];
     return typeof value === 'number' ? value : null;
+  }
+
+  protected onVisibleClassIndicesChange(indices: number[]): void {
+    this.visibleClassIndices = indices;
   }
 }

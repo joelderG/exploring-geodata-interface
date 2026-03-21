@@ -2,17 +2,17 @@
   <div class="class-selector">
     <div class="class-selector__title">Gesteinsklassen</div>
     <div class="class-selector__items">
-      @for (cls of classes; track $index) {
+      @for (index of getDisplayIndices(); track index) {
         <button
           type="button"
           class="class-item"
-          [class.class-item--hidden]="!isVisible($index)"
-          [attr.aria-pressed]="isVisible($index)"
-          (click)="toggle($index)"
-          (dblclick)="setOnlyVisible($index)"
+          [class.class-item--hidden]="!isVisible(index)"
+          [attr.aria-pressed]="isVisible(index)"
+          (click)="toggle(index)"
+          (dblclick)="setOnlyVisible(index)"
         >
-          <span class="class-item__swatch" [style.background]="getClassColor($index)"></span>
-          <span class="class-item__label">{{ classesInfo[$index].name }}</span>
+          <span class="class-item__swatch" [style.background]="getClassColor(index)"></span>
+          <span class="class-item__label">{{ classesInfo[index].name }}</span>
         </button>
       }
     </div>

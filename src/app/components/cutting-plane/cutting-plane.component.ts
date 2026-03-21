@@ -1,4 +1,4 @@
-import { Component, inject, OnChanges, Input, ElementRef, ViewChild, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, inject, OnChanges, Input, ElementRef, ViewChild, OnDestroy, OnInit, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { ColorScale, Data } from 'plotly.js';
@@ -24,6 +24,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   @Input() coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   @Input() classes: number[] = [];
   @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
+  @Output() visibleClassIndicesChange = new EventEmitter<number[]>();
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
   
   private readonly apiService = inject(ApiService);
@@ -70,6 +71,9 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['classes'] && this.isPlotInitialized) {
       this.ensureFixedColorscale();
       this.applyFixedColorscale();
+      if (this.currentSliceData.length > 0) {
+        this.emitVisibleClassIndices(this.currentSliceData);
+      }
     }
 
     if (!this.isPlotInitialized && this.inputsReady()) {
@@ -90,6 +94,7 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private renderSlice(slice: SliceRenderData) {
     this.currentSliceData = slice.data;
     this.currentSliceMeta = slice;
+    this.emitVisibleClassIndices(slice.data);
     const filteredData = this.applyVisibilityFilter(slice.data);
     this.ensureFixedColorscale();
     const colorscaleConfig = this.fixedColorscaleConfig;
@@ -114,6 +119,30 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       this.restylePlot(filteredData, slice);
     }
+  }
+
+  private emitVisibleClassIndices(data: number[][]): void {
+    if (this.classes.length === 0 || data.length === 0) {
+      this.visibleClassIndicesChange.emit([]);
+      return;
+    }
+
+    const presentValues = new Set<number>();
+    for (const row of data) {
+      for (const value of row) {
+        if (value === this.noDataClass) continue;
+        presentValues.add(value);
+      }
+    }
+
+    const indices: number[] = [];
+    for (let i = 0; i < this.classes.length; i++) {
+      if (presentValues.has(this.classes[i])) {
+        indices.push(i);
+      }
+    }
+
+    this.visibleClassIndicesChange.emit(indices);
   }
 
   private createPlot(trace: Partial<Data>, slice: SliceRenderData) {

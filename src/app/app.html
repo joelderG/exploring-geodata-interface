@@ -6,7 +6,8 @@
       [zIndex]="zIndex"
       [coordinates]="coordinates"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
-      [classes]="classes">
+      [classes]="classes"
+      (visibleClassIndicesChange)="onVisibleClassIndicesChange($event)">
     </app-cutting-plane>
     <app-touchpoint-markers [container]="cuttingPlaneLayer"></app-touchpoint-markers>
     @if (!isCuttingPlaneFrozen) {
@@ -45,7 +46,8 @@
   <div class="class-selector-layer">
     <app-class-selector 
     [classes]="classes"
-    [classesInfo]="classesInfo">
+    [classesInfo]="classesInfo"
+    [visibleClassIndices]="visibleClassIndices">
   </app-class-selector>
   </div>
 </div>
