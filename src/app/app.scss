@@ -1,5 +1,5 @@
 :host {
-  --class-selector-width: 200px;
+  --class-selector-width: 292px;
   display: block;
   width: 100%;
   height: 100%;
@@ -31,8 +31,8 @@
   position: absolute;
   top: 3rem;
   left: 3rem;
-  width: min(40vw, 560px);
-  height: min(42vh, 360px);
+  width: min(32vw, 460px);
+  height: min(34vh, 280px);
   z-index: 3;
   opacity: 1;
   visibility: visible;
