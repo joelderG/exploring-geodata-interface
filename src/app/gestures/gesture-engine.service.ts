@@ -7,6 +7,8 @@ import { GestureState } from "./gesture-state";
 import { SwipeLeftRightRecognizer } from "./recognizer/swipe-left-right-recognizer";
 import { SwipeTopBottomRecognizer } from "./recognizer/swipe-top-bottom-recognizer";
 import { SwipeRightLeftRecognizer } from "./recognizer/swipe-right-left-recognizer";
+import { ContextMenuDragLeftRecognizer } from "./recognizer/context-menu-drag-left-recognizer";
+import { ContextMenuDragRightRecognizer } from "./recognizer/context-menu-drag-right-recognizer";
 import { TouchPoint } from "@shared/model/touch-point";
 
 // Central gesture pipeline: builds frames, maintains history, runs recognizers
@@ -21,7 +23,9 @@ export class GestureEngineService {
   private readonly recognizers = [
     new SwipeLeftRightRecognizer(),
     new SwipeTopBottomRecognizer(),
-    new SwipeRightLeftRecognizer()
+    new SwipeRightLeftRecognizer(),
+    new ContextMenuDragLeftRecognizer(),
+    new ContextMenuDragRightRecognizer()
   ];
 
   constructor() {

@@ -11,6 +11,7 @@ import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { GestureActionService } from './gestures/gesture-action.service';
+import { GestureEngineService } from './gestures/gesture-engine.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo, Volume } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
@@ -44,6 +45,7 @@ export class App implements OnInit, OnDestroy {
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
   private readonly gestureActionService = inject(GestureActionService);
+  private readonly gestureEngine = inject(GestureEngineService);
   protected isTouchpointsDebugVisible = false;
   protected deepestPoint: TouchPoint | null = null;
   protected secondaryDeepPoint: TouchPoint | null = null;
@@ -141,6 +143,17 @@ export class App implements OnInit, OnDestroy {
         this.secondaryDeepPoint = point;
         this.recomputeContextMenuText();
       }));
+
+    this.subscriptions.add(this.gestureEngine.events$.subscribe((event) => {
+      if (!this.secondaryDeepPoint) return;
+      if (!this.contextMenuToggleEnabled) return;
+      if (event.type === 'context-drag-left') {
+        this.onContextMenuLeftSelected();
+      }
+      if (event.type === 'context-drag-right') {
+        this.onContextMenuRightSelected();
+      }
+    }));
   }
 
   ngOnDestroy() {
