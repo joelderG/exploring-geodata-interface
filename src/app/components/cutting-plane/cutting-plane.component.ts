@@ -110,7 +110,8 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
       zmax: colorscaleConfig.zmax,
       zsmooth: false,
       showscale: false,
-      hoverinfo: 'skip'
+      hoverinfo: 'skip',
+      hovertemplate: ''
     };
 
     if (!this.isPlotInitialized) {
@@ -156,9 +157,13 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
         yaxis: { title: { text: yLabel } },
         margin: { t: 40, b: 40, l: 40, r: 10 },
         autosize: true,
-        hovermode: false
+        hovermode: false,
+        clickmode: 'none'
       },
-      { responsive: true }
+      {
+        responsive: true,
+        displayModeBar: false
+      }
     );
   }
 
