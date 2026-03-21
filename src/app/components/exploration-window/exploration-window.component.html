@@ -14,7 +14,7 @@
     <div class="exploration-window__section">
       <div class="exploration-window__label">Class</div>
       <div class="exploration-window__row">
-        {{ context.classValue !== null ? context.classValue : '—' }}
+        {{ getClassLabel(context.classValue) }}
       </div>
     </div>
   </div>
