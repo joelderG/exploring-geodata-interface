@@ -14,6 +14,7 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
   @Input() classes: number[] = [];
   @Input() classesInfo: ClassInfo[] = [];
   @Input() visibleClassIndices: number[] | null = null;
+  @Input() contextMenuClassIndex: number | null = null;
 
   private readonly subscription: Subscription = new Subscription;
 

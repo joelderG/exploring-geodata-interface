@@ -7,6 +7,7 @@
           type="button"
           class="class-item"
           [class.class-item--hidden]="!isVisible(index)"
+          [class.class-item--context]="contextMenuClassIndex === index"
           [attr.aria-pressed]="isVisible(index)"
           (click)="toggle(index)"
           (dblclick)="setOnlyVisible(index)"

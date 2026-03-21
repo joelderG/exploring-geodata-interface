@@ -65,4 +65,9 @@
     background: #f0f0f0;
     border-color: #d0d0d0;
   }
+
+  &--context {
+    border-color: #2f6bff;
+    box-shadow: 0 0 0 2px rgba(47, 107, 255, 0.22);
+  }
 }

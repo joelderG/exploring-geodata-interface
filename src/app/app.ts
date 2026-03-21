@@ -62,7 +62,7 @@ export class App implements OnInit, OnDestroy {
   protected classesInfo: ClassInfo[] = [];
   protected visibleClassIndices: number[] | null = null;
   protected contextMenuToggleEnabled = false;
-  private contextMenuClassIndex: number | null = null;
+  protected contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
   protected isCuttingPlaneFrozen = false;
 
