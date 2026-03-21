@@ -8,6 +8,7 @@
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes">
     </app-cutting-plane>
+    <app-touchpoint-markers [container]="cuttingPlaneLayer"></app-touchpoint-markers>
     @if (!isCuttingPlaneFrozen) {
       <app-exploration-window
         [deepestPoint]="deepestPoint"

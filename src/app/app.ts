@@ -6,6 +6,7 @@ import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ExplorationWindowComponent } from '@components/exploration-window/exploration-window.component';
 import { ContextMenuComponent } from '@components/context-menu/context-menu.component';
+import { TouchpointMarkersComponent } from '@components/touchpoint-markers/touchpoint-markers.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
@@ -29,7 +30,8 @@ import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interac
     SettingsComponent,
     TouchpointsDebugComponent,
     ExplorationWindowComponent,
-    ContextMenuComponent
+    ContextMenuComponent,
+    TouchpointMarkersComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
