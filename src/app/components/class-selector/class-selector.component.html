@@ -12,7 +12,7 @@
           (dblclick)="setOnlyVisible($index)"
         >
           <span class="class-item__swatch" [style.background]="getClassColor($index)"></span>
-          <span>{{ classesInfo[$index].name }}</span>
+          <span class="class-item__label">{{ classesInfo[$index].name }}</span>
         </button>
       }
     </div>

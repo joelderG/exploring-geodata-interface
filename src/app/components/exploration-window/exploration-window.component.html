@@ -1,0 +1,21 @@
+@if (context) {
+  <div class="exploration-window">
+    <div class="exploration-window__section">
+      <div class="exploration-window__label">Coordinates</div>
+      <div class="exploration-window__table">
+        <div class="exploration-window__row">X:</div>
+        <div class="exploration-window__row">{{ formatCoord(context.coordinates.x) }}</div>
+        <div class="exploration-window__row">Y:</div>
+        <div class="exploration-window__row">{{ formatCoord(context.coordinates.y) }}</div>
+        <div class="exploration-window__row">Z:</div>
+        <div class="exploration-window__row">{{ formatCoord(context.coordinates.z) }}</div>
+      </div>
+    </div>
+    <div class="exploration-window__section">
+      <div class="exploration-window__label">Class</div>
+      <div class="exploration-window__row">
+        {{ context.classValue !== null ? context.classValue : '—' }}
+      </div>
+    </div>
+  </div>
+}

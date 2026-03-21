@@ -4,16 +4,25 @@ import { Subscription } from 'rxjs';
 import { GestureEngineService } from './gesture-engine.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 
 @Injectable({ providedIn: 'root' })
 export class GestureActionService {
   private readonly gestureEngine = inject(GestureEngineService);
   private readonly appStateService = inject(AppStateService);
   private readonly subscription = new Subscription();
+  private isCuttingPlaneFrozen = false;
 
   constructor() {
     this.subscription.add(
+      this.appStateService.cuttingPlaneInteractionState$.subscribe((state) => {
+        this.isCuttingPlaneFrozen = state === CuttingPlaneInteractionState.Frozen;
+      })
+    );
+
+    this.subscription.add(
       this.gestureEngine.events$.subscribe((event) => {
+        if (this.isCuttingPlaneFrozen) return;
         if (event.type === 'swipe-left-right') {
           this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.YZ);
         }
