@@ -111,7 +111,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         legendgroup: `cls${cls}`,
         visible: true,
         showlegend: false,
-        hoverinfo: 'skip'
+        hoverinfo: 'skip',
+        hovertemplate: ''
       });
 
       this.classPoints.push({ x: xs, y: ys, z: zs });
@@ -129,27 +130,42 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       colorscale: 'Greys',
       name: 'Schnittebene',
       showlegend: false,
-      hoverinfo: 'skip'
+      hoverinfo: 'skip',
+      hovertemplate: ''
     });
 
     const layout: Partial<Layout> = {
       autosize: true,
       margin: { l: 0, r: 0, t: 40, b: 0 },
       hovermode: false,
+      clickmode: 'none',
       scene: {
-        xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.coordinates.xCoordinates), Math.max(...this.coordinates.xCoordinates)] },
-        yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.coordinates.yCoordinates), Math.max(...this.coordinates.yCoordinates)] },
-        zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.coordinates.zCoordinates), Math.max(...this.coordinates.zCoordinates)] },
+        xaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.xCoordinates), Math.max(...this.coordinates.xCoordinates)]
+        },
+        yaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.yCoordinates), Math.max(...this.coordinates.yCoordinates)]
+        },
+        zaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.zCoordinates), Math.max(...this.coordinates.zCoordinates)]
+        },
         aspectmode: 'cube',
         camera: {
-          eye: { x: -1.25, y: -1.25, z: 1.25 }
+          eye: { x: -1.1, y: -1.1, z: 1.1 }
         }
       } 
     };
 
     Plotly.newPlot(this.plotElement.nativeElement, traces, layout, {
       scrollZoom: true,
-      responsive: true
+      responsive: true,
+      displayModeBar: false
     });
 
     this.isPlotInitialized = true;

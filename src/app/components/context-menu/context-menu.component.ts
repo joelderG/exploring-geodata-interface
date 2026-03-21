@@ -37,6 +37,8 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
 
   private resizeObserver: ResizeObserver | null = null;
   private containerSize: { width: number; height: number } = { width: 0, height: 0 };
+  private pinnedTouchId: number | null = null;
+  private pinnedPosition: { x: number; y: number } | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['container']) {
@@ -46,6 +48,7 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     }
 
     if (changes['point']) {
+      this.updatePinnedPoint();
       this.recomputePosition();
     }
   }
@@ -87,16 +90,16 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   }
 
   private recomputePosition(): void {
-    const point = this.point;
-    if (!point) {
+    const position = this.pinnedPosition;
+    if (!position) {
       this.hostLeft = null;
       this.hostTop = null;
       this.updateVisibility();
       return;
     }
 
-    const x = normalizedToDisplayPosition(point.Position.X, this.containerSize.width, { range: 'autoSigned' });
-    const y = normalizedToDisplayPosition(point.Position.Y, this.containerSize.height, { range: 'autoSigned' });
+    const x = normalizedToDisplayPosition(position.x, this.containerSize.width, { range: 'autoSigned' });
+    const y = normalizedToDisplayPosition(position.y, this.containerSize.height, { range: 'autoSigned' });
 
     if (x === null || y === null) {
       this.hostLeft = null;
@@ -110,9 +113,23 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
     this.updateVisibility();
   }
 
+  private updatePinnedPoint(): void {
+    const nextPoint = this.point;
+    if (!nextPoint) {
+      this.pinnedTouchId = null;
+      this.pinnedPosition = null;
+      return;
+    }
+
+    if (this.pinnedTouchId === null || this.pinnedTouchId !== nextPoint.TouchId) {
+      this.pinnedTouchId = nextPoint.TouchId;
+      this.pinnedPosition = { x: nextPoint.Position.X, y: nextPoint.Position.Y };
+    }
+  }
+
   private updateVisibility(): void {
     const hasPosition = Number.isFinite(this.hostLeft ?? NaN) && Number.isFinite(this.hostTop ?? NaN);
-    this.hostDisplay = this.point && hasPosition ? 'block' : 'none';
+    this.hostDisplay = this.pinnedPosition && hasPosition ? 'block' : 'none';
   }
 
   protected onLeftSelected(): void {

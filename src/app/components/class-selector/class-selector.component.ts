@@ -13,6 +13,8 @@ import { Subject, Subscription, takeUntil } from 'rxjs';
 export class ClassSelectorComponent implements OnInit, OnDestroy {
   @Input() classes: number[] = [];
   @Input() classesInfo: ClassInfo[] = [];
+  @Input() visibleClassIndices: number[] | null = null;
+  @Input() contextMenuClassIndex: number | null = null;
 
   private readonly subscription: Subscription = new Subscription;
 
@@ -38,6 +40,13 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
 
   protected isVisible(index: number): boolean {
     return this.classVisible[index] ?? true;
+  }
+
+  protected getDisplayIndices(): number[] {
+    if (this.visibleClassIndices !== null) {
+      return this.visibleClassIndices;
+    }
+    return this.classes.map((_, index) => index);
   }
 
   protected toggle(index: number): void {

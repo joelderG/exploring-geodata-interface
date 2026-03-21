@@ -6,10 +6,12 @@ import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ExplorationWindowComponent } from '@components/exploration-window/exploration-window.component';
 import { ContextMenuComponent } from '@components/context-menu/context-menu.component';
+import { TouchpointMarkersComponent } from '@components/touchpoint-markers/touchpoint-markers.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
 import { GestureActionService } from './gestures/gesture-action.service';
+import { GestureEngineService } from './gestures/gesture-engine.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo, Volume } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
@@ -29,7 +31,8 @@ import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interac
     SettingsComponent,
     TouchpointsDebugComponent,
     ExplorationWindowComponent,
-    ContextMenuComponent
+    ContextMenuComponent,
+    TouchpointMarkersComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -42,6 +45,7 @@ export class App implements OnInit, OnDestroy {
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
   private readonly gestureActionService = inject(GestureActionService);
+  private readonly gestureEngine = inject(GestureEngineService);
   protected isTouchpointsDebugVisible = false;
   protected deepestPoint: TouchPoint | null = null;
   protected secondaryDeepPoint: TouchPoint | null = null;
@@ -56,8 +60,9 @@ export class App implements OnInit, OnDestroy {
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];
+  protected visibleClassIndices: number[] | null = null;
   protected contextMenuToggleEnabled = false;
-  private contextMenuClassIndex: number | null = null;
+  protected contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
   protected isCuttingPlaneFrozen = false;
 
@@ -139,6 +144,17 @@ export class App implements OnInit, OnDestroy {
         this.secondaryDeepPoint = point;
         this.recomputeContextMenuText();
       }));
+
+    this.subscriptions.add(this.gestureEngine.events$.subscribe((event) => {
+      if (!this.secondaryDeepPoint) return;
+      if (!this.contextMenuToggleEnabled) return;
+      if (event.type === 'context-drag-left') {
+        this.onContextMenuLeftSelected();
+      }
+      if (event.type === 'context-drag-right') {
+        this.onContextMenuRightSelected();
+      }
+    }));
   }
 
   ngOnDestroy() {
@@ -210,12 +226,17 @@ export class App implements OnInit, OnDestroy {
   }
 
   protected onContextMenuRightSelected(): void {
-    this.toggleContextMenuClassVisibility();
+    this.toggleContextMenuOtherClassesVisibility();
   }
 
   private toggleContextMenuClassVisibility(): void {
     if (this.contextMenuClassIndex === null) return;
     this.appStateService.toggleClassVisibilityAtIndex(this.contextMenuClassIndex);
+  }
+
+  private toggleContextMenuOtherClassesVisibility(): void {
+    if (this.contextMenuClassIndex === null) return;
+    this.appStateService.toggleOtherClassVisibilityAtIndex(this.contextMenuClassIndex);
   }
 
   private recomputeContextMenuText(): void {
@@ -264,5 +285,9 @@ export class App implements OnInit, OnDestroy {
     const yRow = zPlane?.[y.index];
     const value = yRow?.[x.index];
     return typeof value === 'number' ? value : null;
+  }
+
+  protected onVisibleClassIndicesChange(indices: number[]): void {
+    this.visibleClassIndices = indices;
   }
 }

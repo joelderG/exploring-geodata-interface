@@ -4,7 +4,29 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class ColorService {
-  private readonly palette = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52'];
+  private readonly palette = [
+    '#4E79A7',
+    '#4E79A7',
+    '#A0CBE8',
+    '#F28E2B',
+    '#FFBE7D',
+    '#59A14F',
+    '#8CD17D',
+    '#B6992D',
+    '#F1CE63',
+    '#499894',
+    '#86BCB6',
+    '#E15759',
+    '#FF9D9A',
+    '#79706E',
+    '#BAB0AC',
+    '#D37295',
+    '#FABFD2',
+    '#B07AA1',
+    '#D4A6C8',
+    '#9D7660',
+    '#D7B5A6'
+  ];
   private readonly noDataClass = -1;
   private readonly noDataColor = '#FFFFFF';
 

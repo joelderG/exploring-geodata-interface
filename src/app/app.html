@@ -6,12 +6,16 @@
       [zIndex]="zIndex"
       [coordinates]="coordinates"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
-      [classes]="classes">
+      [classes]="classes"
+      (visibleClassIndicesChange)="onVisibleClassIndicesChange($event)">
     </app-cutting-plane>
+    <app-touchpoint-markers [container]="cuttingPlaneLayer"></app-touchpoint-markers>
     @if (!isCuttingPlaneFrozen) {
       <app-exploration-window
         [deepestPoint]="deepestPoint"
         [coordinates]="coordinates"
+        [classes]="classes"
+        [classesInfo]="classesInfo"
         [cuttingPlaneOrientation]="cuttingPlaneOrientation"
         [container]="cuttingPlaneLayer">
       </app-exploration-window>
@@ -44,7 +48,9 @@
   <div class="class-selector-layer">
     <app-class-selector 
     [classes]="classes"
-    [classesInfo]="classesInfo">
+    [classesInfo]="classesInfo"
+    [visibleClassIndices]="visibleClassIndices"
+    [contextMenuClassIndex]="contextMenuClassIndex">
   </app-class-selector>
   </div>
 </div>

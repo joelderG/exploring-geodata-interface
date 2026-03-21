@@ -10,7 +10,7 @@ import {
   inject
 } from '@angular/core';
 import { ApiService } from '@services/api/api.service';
-import { Volume } from '@services/api/api.types';
+import { ClassInfo, Volume } from '@services/api/api.types';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { TouchPoint } from '@shared/model/touch-point';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
@@ -40,6 +40,8 @@ export class ExplorationWindowComponent implements OnInit, OnChanges, OnDestroy 
   @Input() coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   @Input() container: HTMLElement | null = null;
   @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
+  @Input() classes: number[] = [];
+  @Input() classesInfo: ClassInfo[] = [];
 
   protected context: ExplorationContext | null = null;
 
@@ -90,6 +92,17 @@ export class ExplorationWindowComponent implements OnInit, OnChanges, OnDestroy 
       return '—';
     }
     return value.toFixed(2);
+  }
+
+  protected getClassLabel(classValue: number | null): string {
+    if (classValue === null) return '—';
+    const classIndex = this.classes.indexOf(classValue);
+    if (classIndex >= 0) {
+      const info = this.classesInfo[classIndex];
+      if (info?.name) return info.name;
+      if (info?.id) return info.id;
+    }
+    return `${classValue}`;
   }
 
   private attachResizeObserver(): void {

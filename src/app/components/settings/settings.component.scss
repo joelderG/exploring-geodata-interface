@@ -1,9 +1,10 @@
-@use 'app/styles/colors.scss' as *;
+@use '../../styles/colors.scss' as *;
+@use '../../styles/fonts.scss' as *;
 
 .settings {
   position: fixed;
-  top: 2rem;
-  right: 12rem;
+  top: 30px;
+  right: 18rem;
   z-index: 1500;
   width: min(360px, calc(100vw - 2rem));
   min-height: 180px;
@@ -11,7 +12,9 @@
   border: 1px solid #d2d2d2;
   border-radius: 12px;
   background: $color-white;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background-color: #F0F1F2;
+
+  @include text;
 
   opacity: 0;
   visibility: hidden;
@@ -23,6 +26,7 @@
   &__title {
     margin: 0 0 1rem;
     font-size: 1.125rem;
+    @include title;
   }
 }
 
@@ -42,8 +46,8 @@
     margin-bottom: 1rem;
 
     &__connection-status {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-color: 1px solid black;
         background-color: gray;
         border-radius: 360px;
@@ -76,7 +80,7 @@
         cursor: pointer;
 
         &:hover {
-            background: #e9e9e9;
+            background: $primary-color-light2;
         }
     }
 }
@@ -95,7 +99,7 @@
         cursor: pointer;
 
         &:hover {
-            background: #e9e9e9;
+            background: $primary-color-light2;
         }
     }
 }
@@ -114,7 +118,7 @@
         cursor: pointer;
 
         &:hover {
-            background: #e9e9e9;
+            background: $primary-color-light2;
         }
     }
 }
@@ -144,11 +148,11 @@
         cursor: pointer;
 
         &:hover {
-            background: #e9e9e9;
+            background: $primary-color-light2;
         }
 
         &.is-active {
-            background: #2e2e2e;
+            background: $primary-color;
             border-color: #2e2e2e;
             color: #ffffff;
         }

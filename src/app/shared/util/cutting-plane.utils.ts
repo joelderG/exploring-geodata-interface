@@ -66,8 +66,10 @@ export function normalizedZToSliceIndex(
   const axisCoords = getAxisCoordinatesForOrientation(orientation, coordinates);
   if (axisCoords.length === 0) return null;
 
-  // Server depth values may be in [0, 1] or [0, -1]. Normalize both to [0, 1].
-  const normalizedDepth = zNormalized < 0 ? -zNormalized : zNormalized;
+  // Depth interaction is only in [-1, 0]. Positive values are reserved for pull-out.
+  if (zNormalized > 0) return null;
+  // Map [-1, 0] -> [1, 0] depth magnitude, then clamp to [0, 1].
+  const normalizedDepth = -zNormalized;
   const clamped = Math.min(Math.max(normalizedDepth, 0), 1);
 
   let min = Infinity;
@@ -84,10 +86,9 @@ export function normalizedZToSliceIndex(
     return firstFiniteIndex >= 0 ? firstFiniteIndex : null;
   }
 
-  const shouldInvert = orientation === CuttingPlaneOrientation.XY;
-  // For XY we invert normalized depth so z=1 maps to the bottom and z=0 to the top.
-  // For XZ/YZ we keep natural mapping so z=0 -> min and z=1 -> max.
-  const normalized = shouldInvert ? 1 - clamped : clamped;
+  // z=0 -> start (min), z=-1 -> end (max).
+  // For XY we invert so depth pulls move "down" the volume.
+  const normalized = orientation === CuttingPlaneOrientation.XY ? 1 - clamped : clamped;
   const targetValue = min + normalized * (max - min);
   let bestIndex = -1;
   let bestDistance = Infinity;
