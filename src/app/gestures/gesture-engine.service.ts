@@ -9,6 +9,7 @@ import { SwipeTopBottomRecognizer } from "./recognizer/swipe-top-bottom-recogniz
 import { SwipeRightLeftRecognizer } from "./recognizer/swipe-right-left-recognizer";
 import { ContextMenuDragLeftRecognizer } from "./recognizer/context-menu-drag-left-recognizer";
 import { ContextMenuDragRightRecognizer } from "./recognizer/context-menu-drag-right-recognizer";
+import { PullOutResetRecognizer } from "./recognizer/pull-out-reset-recognizer";
 import { TouchPoint } from "@shared/model/touch-point";
 
 // Central gesture pipeline: builds frames, maintains history, runs recognizers
@@ -25,7 +26,8 @@ export class GestureEngineService {
     new SwipeTopBottomRecognizer(),
     new SwipeRightLeftRecognizer(),
     new ContextMenuDragLeftRecognizer(),
-    new ContextMenuDragRightRecognizer()
+    new ContextMenuDragRightRecognizer(),
+    new PullOutResetRecognizer()
   ];
 
   constructor() {

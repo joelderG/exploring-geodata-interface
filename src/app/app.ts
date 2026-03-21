@@ -226,12 +226,17 @@ export class App implements OnInit, OnDestroy {
   }
 
   protected onContextMenuRightSelected(): void {
-    this.toggleContextMenuClassVisibility();
+    this.toggleContextMenuOtherClassesVisibility();
   }
 
   private toggleContextMenuClassVisibility(): void {
     if (this.contextMenuClassIndex === null) return;
     this.appStateService.toggleClassVisibilityAtIndex(this.contextMenuClassIndex);
+  }
+
+  private toggleContextMenuOtherClassesVisibility(): void {
+    if (this.contextMenuClassIndex === null) return;
+    this.appStateService.toggleOtherClassVisibilityAtIndex(this.contextMenuClassIndex);
   }
 
   private recomputeContextMenuText(): void {

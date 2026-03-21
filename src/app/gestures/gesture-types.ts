@@ -3,7 +3,8 @@ export type GestureType =
     | 'swipe-right-left'
     | 'swipe-top-bottom'
     | 'context-drag-left'
-    | 'context-drag-right';
+    | 'context-drag-right'
+    | 'pull-out-reset';
 
 // Gesture event types emitted by recognizers
 

@@ -44,12 +44,27 @@ export class AppStateService {
     this.classVisibilitySubject.next(next);
   }
 
+  toggleOtherClassVisibilityAtIndex(index: number): void {
+    const current = this.classVisibilitySubject.value;
+    if (index < 0 || index >= current.length) return;
+
+    const next = current.map((isVisible, i) => i === index ? isVisible : !isVisible);
+    this.classVisibilitySubject.next(next);
+  }
+
   setOnlyClassVisible(index: number): void {
     const current = this.classVisibilitySubject.value;
     if (index < 0 || index >= current.length) return;
 
     const next = current.map((_, i) => i === index);
     this.classVisibilitySubject.next(next);
+  }
+
+  setAllClassesVisible(): void {
+    const current = this.classVisibilitySubject.value;
+    if (current.length === 0) return;
+    if (current.every(Boolean)) return;
+    this.classVisibilitySubject.next(new Array(current.length).fill(true));
   }
 
   toggleShowOnlyCurrentSlicePoints(): void {
