@@ -7,11 +7,11 @@ describe('ExplorationWindowComponent', () => {
   let component: ExplorationWindowComponent;
   let fixture: ComponentFixture<ExplorationWindowComponent>;
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [ExplorationWindowComponent, HttpClientTestingModule]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(ExplorationWindowComponent);
     component = fixture.componentInstance;

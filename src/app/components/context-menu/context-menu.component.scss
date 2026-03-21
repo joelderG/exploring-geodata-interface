@@ -4,6 +4,7 @@
   position: absolute;
   z-index: 6;
   pointer-events: none;
+  // transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
 }
 
@@ -59,6 +60,6 @@
   &__options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 64px;
+    gap: 100px;
   }
 }
