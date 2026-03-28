@@ -67,40 +67,20 @@ export class AppStateService {
     this.classVisibilitySubject.next(new Array(current.length).fill(true));
   }
 
-  toggleShowOnlyCurrentSlicePoints(): void {
-    this.showOnlyCurrentSlicePointsSubject.next(!this.showOnlyCurrentSlicePointsSubject.value);
-  }
-
   toggleSettingsPanelVisibility(): void {
     this.settingsPanelVisibleSubject.next(!this.settingsPanelVisibleSubject.value);
-  }
-
-  setSettingsPanelVisibility(isVisible: boolean): void {
-    this.settingsPanelVisibleSubject.next(isVisible);
   }
 
   toggleInteractionStreamingActive(): void {
     this.interactionStreamingActiveSubject.next(!this.interactionStreamingActiveSubject.value);
   }
 
-  setInteractionStreamingActive(isActive: boolean): void {
-    this.interactionStreamingActiveSubject.next(isActive);
-  }
-
   toggleVolumeViewerAlwaysVisible(): void {
     this.volumeViewerAlwaysVisibleSubject.next(!this.volumeViewerAlwaysVisibleSubject.value);
   }
 
-  setVolumeViewerAlwaysVisible(isVisible: boolean): void {
-    this.volumeViewerAlwaysVisibleSubject.next(isVisible);
-  }
-
   toggleTouchpointsDebugVisible(): void {
     this.touchpointsDebugVisibleSubject.next(!this.touchpointsDebugVisibleSubject.value);
-  }
-
-  setTouchpointsDebugVisible(isVisible: boolean): void {
-    this.touchpointsDebugVisibleSubject.next(isVisible);
   }
 
   setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {

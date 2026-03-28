@@ -179,13 +179,6 @@ export class App implements OnInit, OnDestroy {
       const nextZIndex = Math.max(this.zIndex - 1, 0);
       this.updateZIndex(nextZIndex);
     }
-    if (e.key >= '0' && e.key <= '9') {
-      const i = parseInt(e.key);
-      this.appStateService.toggleClassVisibilityAtIndex(i);
-    }
-    if (e.key === 't' || e.key === 'T') {
-      this.appStateService.toggleShowOnlyCurrentSlicePoints();
-    }
     if (e.key === 's' || e.key === 'S') {
       this.appStateService.toggleSettingsPanelVisibility();
     }
