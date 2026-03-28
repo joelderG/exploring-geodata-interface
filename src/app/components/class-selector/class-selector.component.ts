@@ -2,7 +2,7 @@ import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { ClassInfo } from '@services/api/api.types';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { ColorService } from '@services/color/color.service';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-class-selector',
@@ -20,13 +20,11 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
 
   private readonly appStateService = inject(AppStateService);
   private readonly colorService = inject(ColorService);
-  private readonly destroy$ = new Subject<void>();
   
   protected classVisible: boolean[] = [];
 
   ngOnInit() {
     this.subscription.add(this.appStateService.classVisibility$
-      .pipe(takeUntil(this.destroy$))
       .subscribe((classVisible) => {
         this.classVisible = classVisible;
       }));
@@ -34,8 +32,6 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription.unsubscribe();
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   protected isVisible(index: number): boolean {

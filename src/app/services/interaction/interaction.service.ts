@@ -12,7 +12,6 @@ import * as THREE from "three";
 
 @Injectable()
 export class InteractionService extends WebSocketService<TouchPoint[]> { 
-  private readonly httpClient = inject(HttpClient);
   private static readonly _webSocketUrl = environment.websocketUrl;
   private static readonly _startWebSocketsRoute = `http://${environment.serverAddress}:${environment.serverPort}/${environment.startWebSocketsRoute}`;
   private readonly _getCalibrationRoute = `http://${environment.serverAddress}:${environment.serverPort}/${environment.calibrationRoute}`;
@@ -53,7 +52,7 @@ export class InteractionService extends WebSocketService<TouchPoint[]> {
   }
 
   public getCalibration(): Observable<Transformation> {
-    return this.httpClient.get<RawTransformation>(this._getCalibrationRoute, { headers: this.Headers }).pipe(
+    return this.HttpClient.get<RawTransformation>(this._getCalibrationRoute, { headers: this.Headers }).pipe(
       map(result => {
         const trans = result.transformation;
         const mat = new THREE.Matrix4();

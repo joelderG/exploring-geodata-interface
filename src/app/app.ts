@@ -10,7 +10,6 @@ import { TouchpointMarkersComponent } from '@components/touchpoint-markers/touch
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
-import { GestureActionService } from './gestures/gesture-action.service';
 import { GestureEngineService } from './gestures/gesture-engine.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo, Volume } from '@services/api/api.types';
@@ -44,7 +43,6 @@ export class App implements OnInit, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
-  private readonly gestureActionService = inject(GestureActionService);
   private readonly gestureEngine = inject(GestureEngineService);
   protected isTouchpointsDebugVisible = false;
   protected deepestPoint: TouchPoint | null = null;
@@ -250,15 +248,6 @@ export class App implements OnInit, OnDestroy {
     const classIndex = this.classes.indexOf(classValue);
     this.contextMenuClassIndex = classIndex >= 0 ? classIndex : null;
     this.contextMenuToggleEnabled = this.contextMenuClassIndex !== null;
-  }
-
-  private getClassLabel(classValue: number, classIndex: number | null): string {
-    if (classIndex !== null && classIndex >= 0) {
-      const info = this.classesInfo[classIndex];
-      if (info?.name) return info.name;
-      if (info?.id) return info.id;
-    }
-    return `${classValue}`;
   }
 
   private getClassAtPoint(point: TouchPoint | null): number | null {
