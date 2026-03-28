@@ -12,12 +12,6 @@ export interface ClassInfo {
     name: string
 }
 
-export interface Slice {
-    z_index: number,
-    z_val: number,
-    data: number[][]
-}
-
 export interface Volume {
     data: number[][][]
 }

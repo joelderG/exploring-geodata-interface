@@ -54,7 +54,6 @@ export class App implements OnInit, OnDestroy {
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
   private isVolumeViewerAlwaysVisible = false;
-  // TODO: add decent destructuring of object when needed 
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];

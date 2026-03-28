@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { MetaData, Slice, Volume } from './api.types';
+import { MetaData, Volume } from './api.types';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +11,6 @@ export class ApiService {
 
   getMeta() {
     return this.http.get<MetaData>(`${this.root}/meta`);
-  }
-
-  getSlice(zIndex: number) {
-    return this.http.get<Slice>(`${this.root}/slice/${zIndex}`);
   }
 
   getVolume() {
