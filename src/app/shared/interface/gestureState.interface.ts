@@ -1,4 +1,4 @@
-import { TouchFrame } from "./touch-frame";
+import { TouchFrame } from "@shared/interface/touch-frame";
 
 // Shared state for recognizers: per-touch history and last frame.
 
@@ -15,7 +15,7 @@ export interface TouchHistory {
     lastSeenMs: number;
 }
 
-export interface GestureState {
+export interface GestureStateInterface {
     histories: Map<number, TouchHistory>;
     lastFrame?: TouchFrame;
 }

@@ -12,6 +12,7 @@ import { ensureSliceIndexInBounds } from '@shared/util/cutting-plane.utils';
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { DiscreteColorscaleConfig } from '@shared/interface/discrete-colorscale-config';
 import { SliceRenderData } from '@shared/interface/slice-render-data';
+import { getValidSliceRange } from '@shared/util/volume-slice.utils';
 
 @Component({
   selector: 'app-cutting-plane',
@@ -40,6 +41,8 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private readonly noDataClass = -1;
   private readonly volume$ = this.apiService.getVolume().pipe(shareReplay(1));
   private readonly axisMismatchWarned = new Set<CuttingPlaneOrientation>();
+  private readonly validSliceRange = new Map<CuttingPlaneOrientation, { min: number; max: number }>();
+  private cachedVolume: Volume | null = null;
 
   ngOnInit() {
     this.appStateService.visibleClasses$
@@ -215,6 +218,10 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private getSliceData(index: number, orientation: CuttingPlaneOrientation) {
     return this.volume$.pipe(
       map((volume) => {
+        if (this.cachedVolume !== volume) {
+          this.cachedVolume = volume;
+          this.validSliceRange.clear();
+        }
         const dataIndex = this.clampIndexToVolume(index, orientation, volume);
         const coordIndex = ensureSliceIndexInBounds(dataIndex, this.coordinates, orientation);
         return {
@@ -325,9 +332,26 @@ export class CuttingPlaneComponent implements OnInit, OnChanges, OnDestroy {
   private clampIndexToVolume(index: number, orientation: CuttingPlaneOrientation, volume: Volume): number {
     const axisLength = this.getVolumeAxisLength(orientation, volume);
     const maxIndex = Math.max(axisLength - 1, 0);
-    const safeIndex = Math.min(Math.max(index, 0), maxIndex);
+    const { min, max } = this.getValidSliceRange(orientation, volume, maxIndex);
+    const safeIndex = Math.min(Math.max(index, min), max);
     this.warnIfAxisMismatch(orientation, volume);
     return safeIndex;
+  }
+
+  private getValidSliceRange(
+    orientation: CuttingPlaneOrientation,
+    volume: Volume,
+    maxIndex: number
+  ): { min: number; max: number } {
+    const cached = this.validSliceRange.get(orientation);
+    if (cached) return cached;
+    const computed = getValidSliceRange(volume, orientation, this.noDataClass);
+    const range = {
+      min: computed.min,
+      max: Math.min(computed.max, maxIndex)
+    };
+    this.validSliceRange.set(orientation, range);
+    return range;
   }
 
   private getVolumeAxisLength(orientation: CuttingPlaneOrientation, volume: Volume): number {

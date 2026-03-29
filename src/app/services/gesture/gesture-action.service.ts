@@ -32,9 +32,6 @@ export class GestureActionService {
         if (event.type === 'swipe-right-left') {
           this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.XZ);
         }
-        if (event.type === 'pull-out-reset') {
-          this.appStateService.setAllClassesVisible();
-        }
       })
     );
   }
