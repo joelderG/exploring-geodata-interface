@@ -45,8 +45,14 @@
     </div>
   }
 
+  @if (isGestureExplanationVisible) {
+    <div class="gesture-explanation-layer">
+      <app-gesture-explanation></app-gesture-explanation>
+    </div>
+  }
+
   <div class="class-selector-layer">
-    <app-class-selector 
+    <app-class-selector
     [classes]="classes"
     [classesInfo]="classesInfo"
     [visibleClassIndices]="visibleClassIndices"

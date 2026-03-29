@@ -14,6 +14,7 @@ export class AppStateService {
   private readonly interactionStreamingActiveSubject = new BehaviorSubject<boolean>(false);
   private readonly volumeViewerAlwaysVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly touchpointsDebugVisibleSubject = new BehaviorSubject<boolean>(false);
+  private readonly gestureExplanationVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly cuttingPlaneOrientationSubject = new BehaviorSubject<CuttingPlaneOrientation>(CuttingPlaneOrientation.XY);
   private readonly cuttingPlaneInteractionStateSubject = new BehaviorSubject<CuttingPlaneInteractionState>(CuttingPlaneInteractionState.Interactive);
 
@@ -24,6 +25,7 @@ export class AppStateService {
   readonly interactionStreamingActive$ = this.interactionStreamingActiveSubject.asObservable();
   readonly volumeViewerAlwaysVisible$ = this.volumeViewerAlwaysVisibleSubject.asObservable();
   readonly touchpointsDebugVisible$ = this.touchpointsDebugVisibleSubject.asObservable();
+  readonly gestureExplanationVisible$ = this.gestureExplanationVisibleSubject.asObservable();
   readonly cuttingPlaneOrientation$ = this.cuttingPlaneOrientationSubject.asObservable();
   readonly cuttingPlaneInteractionState$ = this.cuttingPlaneInteractionStateSubject.asObservable();
   readonly visibleClasses$ = combineLatest([this.classes$, this.classVisibility$]).pipe(
@@ -81,6 +83,10 @@ export class AppStateService {
 
   toggleTouchpointsDebugVisible(): void {
     this.touchpointsDebugVisibleSubject.next(!this.touchpointsDebugVisibleSubject.value);
+  }
+
+  toggleGestureExplanationVisible(): void {
+    this.gestureExplanationVisibleSubject.next(!this.gestureExplanationVisibleSubject.value);
   }
 
   setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {

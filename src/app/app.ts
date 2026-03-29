@@ -22,6 +22,7 @@ import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { normalizedToCoordinateIndex, NormalizedIndexResult } from '@shared/util/normalized-coordinate.utils';
 import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 import { getValidSliceRange, SliceIndexRange } from '@shared/util/volume-slice.utils';
+import {GestureExplanationComponent} from '@components/gesture-explanation/gesture-explanation.component';
 
 @Component({
   selector: 'app-root',
@@ -33,7 +34,8 @@ import { getValidSliceRange, SliceIndexRange } from '@shared/util/volume-slice.u
     TouchpointsDebugComponent,
     ExplorationWindowComponent,
     ContextMenuComponent,
-    TouchpointMarkersComponent
+    TouchpointMarkersComponent,
+    GestureExplanationComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
@@ -48,6 +50,7 @@ export class App implements OnInit, OnDestroy {
   private readonly gestureEngine = inject(GestureEngineService);
   private readonly gestureActionService = inject(GestureActionService);
   protected isTouchpointsDebugVisible = false;
+  protected isGestureExplanationVisible = false;
   protected deepestPoint: TouchPoint | null = null;
   protected secondaryDeepPoint: TouchPoint | null = null;
   private readonly volumeViewerVisibilityMs = 3000;
@@ -118,6 +121,10 @@ export class App implements OnInit, OnDestroy {
 
     this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
       this.isTouchpointsDebugVisible = isVisible;
+    }));
+
+    this.subscriptions.add(this.appStateService.gestureExplanationVisible$.subscribe((isVisible) => {
+      this.isGestureExplanationVisible = isVisible;
     }));
 
     this.subscriptions.add(this.appStateService.cuttingPlaneInteractionState$

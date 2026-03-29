@@ -15,12 +15,12 @@ import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation'
 export class SettingsComponent implements OnInit, OnDestroy {
   // SUBSCRIPTIONS
   private readonly subscriptions: Subscription = new Subscription;
-  
+
   // SERVICES
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
   private readonly interactionService = inject(InteractionService);
-  
+
   // ENUM
   protected readonly cuttingPlaneOrientationEnum = CuttingPlaneOrientation;
 
@@ -29,6 +29,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   protected isInteractionStreamingActive = false;
   protected isVolumeViewerAlwaysVisible = false;
   protected isTouchpointsDebugVisible = false;
+  protected isGestureExplanationVisible = false;
   protected cuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected interactionConnectionState: ConnectionState = ConnectionState.Disconnected;
 
@@ -49,6 +50,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
       this.isTouchpointsDebugVisible = isVisible;
     }));
+
+    this.subscriptions.add(this.appStateService.gestureExplanationVisible$.subscribe((isVisible) => {
+      this.isGestureExplanationVisible = isVisible;
+    }))
 
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$.subscribe((orientation) => {
       this.cuttingPlaneOrientation = orientation;
@@ -84,5 +89,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   protected setCuttingPlaneOrientation(orientation: CuttingPlaneOrientation): void {
     this.appStateService.setCuttingPlaneOrientation(orientation);
+  }
+
+  protected toggleGestureExplanationVisible(): void {
+    this.appStateService.toggleGestureExplanationVisible();
   }
 }

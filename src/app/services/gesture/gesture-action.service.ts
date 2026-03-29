@@ -12,6 +12,7 @@ export class GestureActionService {
   private readonly appStateService = inject(AppStateService);
   private readonly subscription = new Subscription();
   private isCuttingPlaneFrozen = false;
+  private currentOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
 
   constructor() {
     this.subscription.add(
@@ -21,18 +22,34 @@ export class GestureActionService {
     );
 
     this.subscription.add(
+      this.appStateService.cuttingPlaneOrientation$.subscribe((orientation) => {
+        this.currentOrientation = orientation;
+      })
+    );
+
+    this.subscription.add(
       this.gestureEngine.events$.subscribe((event) => {
         if (this.isCuttingPlaneFrozen) return;
         if (event.type === 'swipe-left-right') {
-          this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.YZ);
+          this.appStateService.setCuttingPlaneOrientation(this.getNextHorizontalOrientation('swipe-left-right'));
         }
         if (event.type === 'swipe-top-bottom') {
           this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.XY);
         }
         if (event.type === 'swipe-right-left') {
-          this.appStateService.setCuttingPlaneOrientation(CuttingPlaneOrientation.XZ);
+          this.appStateService.setCuttingPlaneOrientation(this.getNextHorizontalOrientation('swipe-right-left'));
         }
       })
     );
+  }
+
+  private getNextHorizontalOrientation(direction: 'swipe-left-right' | 'swipe-right-left'): CuttingPlaneOrientation {
+    if (this.currentOrientation === CuttingPlaneOrientation.XY) {
+      return direction === 'swipe-left-right' ? CuttingPlaneOrientation.YZ : CuttingPlaneOrientation.XZ;
+    }
+
+    return this.currentOrientation === CuttingPlaneOrientation.XZ
+      ? CuttingPlaneOrientation.YZ
+      : CuttingPlaneOrientation.XZ;
   }
 }
