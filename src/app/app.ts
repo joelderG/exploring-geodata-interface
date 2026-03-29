@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CuttingPlaneComponent } from "@components/cutting-plane/cutting-plane.component";
 import { ClassSelectorComponent } from '@components/class-selector/class-selector.component';
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
@@ -6,7 +6,6 @@ import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ExplorationWindowComponent } from '@components/exploration-window/exploration-window.component';
 import { ContextMenuComponent } from '@components/context-menu/context-menu.component';
-import { TouchpointMarkersComponent } from '@components/touchpoint-markers/touchpoint-markers.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
@@ -34,13 +33,12 @@ import {GestureExplanationComponent} from '@components/gesture-explanation/gestu
     TouchpointsDebugComponent,
     ExplorationWindowComponent,
     ContextMenuComponent,
-    TouchpointMarkersComponent,
     GestureExplanationComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App implements OnInit, OnDestroy {
+export class App implements OnInit, OnDestroy, AfterViewInit {
   protected readonly title = signal('reflex-geo-explore');
 
   private readonly subscriptions: Subscription = new Subscription;
@@ -71,6 +69,10 @@ export class App implements OnInit, OnDestroy {
   private cachedVolumeForSliceRange: Volume | null = null;
   private readonly validSliceRange = new Map<CuttingPlaneOrientation, SliceIndexRange>();
   protected isCuttingPlaneFrozen = false;
+
+  @ViewChild('cuttingPlaneEl', { read: ElementRef })
+  private cuttingPlaneEl?: ElementRef<HTMLElement>;
+  protected cuttingPlaneHost: HTMLElement | null = null;
 
   ngOnInit() {
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$
@@ -179,6 +181,10 @@ export class App implements OnInit, OnDestroy {
     }
 
     this.subscriptions.unsubscribe();
+  }
+
+  ngAfterViewInit(): void {
+    this.cuttingPlaneHost = this.cuttingPlaneEl?.nativeElement ?? null;
   }
 
   @HostListener('window:keydown', ['$event'])
