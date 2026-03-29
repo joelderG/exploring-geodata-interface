@@ -38,10 +38,14 @@ export class ClassSelectorComponent implements OnInit, OnDestroy {
     return this.classVisible[index] ?? true;
   }
 
-  protected getDisplayIndices(): number[] {
-    if (this.visibleClassIndices !== null) {
-      return this.visibleClassIndices;
+  protected isVisibleInCuttingPlane(index: number): boolean {
+    if (this.visibleClassIndices === null) {
+      return true;
     }
+    return this.visibleClassIndices.includes(index) && this.isVisible(index);
+  }
+
+  protected getDisplayIndices(): number[] {
     return this.classes.map((_, index) => index);
   }
 
