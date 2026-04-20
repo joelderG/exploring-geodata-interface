@@ -1,22 +1,22 @@
+// Detects horizontal swipe gestures from a single touch history.
 import { GestureRecognizer } from "../gesture-recognizer";
-import { GestureState } from "../gesture-state";
+import { GestureStateInterface } from "../../interface/gestureState.interface";
 import { GestureEvent } from "../gesture-types";
-import { TouchFrame } from "../touch-frame";
+import { TouchFrame } from "../../interface/touch-frame";
+import { gestureConfig } from "../gesture-config";
 
-// Detects left-to-right swipe gestures from a single touch history.
-
-export class SwipeLeftRightRecognizer implements GestureRecognizer {
-  name = 'swipe';
+export class SwipeHorizontalRecognizer implements GestureRecognizer {
+  name = 'swipe-horizontal';
   private cooldownUntil = 0;
   private activeTouchId: number | null = null;
 
-  // Thresholds for a valid left-to-right swipe (normalized coords).
-  private readonly maxDurationMs = 3500;
-  private readonly maxVerticalDelta = 0.2;
-  private readonly minHorizontalDelta = 0.2;
-  private readonly cooldownMs = 1000;
+  // Thresholds for a valid horizontal swipe (normalized coords).
+  private readonly maxDurationMs = gestureConfig.swipeHorizontal.maxDurationMs;
+  private readonly maxVerticalDelta = gestureConfig.swipeHorizontal.maxVerticalDelta;
+  private readonly minHorizontalDelta = gestureConfig.swipeHorizontal.minHorizontalDelta;
+  private readonly cooldownMs = gestureConfig.swipeHorizontal.cooldownMs;
 
-  update(frame: TouchFrame, state: GestureState): GestureEvent[] {
+  update(frame: TouchFrame, state: GestureStateInterface): GestureEvent[] {
     // Wait for touch release so the same swipe doesn't fire repeatedly.
     if (this.activeTouchId !== null && !state.histories.has(this.activeTouchId)) {
       this.activeTouchId = null;
@@ -38,14 +38,14 @@ export class SwipeLeftRightRecognizer implements GestureRecognizer {
 
     if (dtMs > this.maxDurationMs) return []; // too slow
     if (Math.abs(dy) > this.maxVerticalDelta) return []; // not horizontal
-    if (dx < this.minHorizontalDelta) return []; // not left-to-right
+    if (Math.abs(dx) < this.minHorizontalDelta) return []; // too small
 
     const angle = Math.atan2(dy, dx);
     this.cooldownUntil = frame.timeMs + this.cooldownMs;
     this.activeTouchId = history.id;
 
     return [{
-      type: 'swipe-left-right',
+      type: dx > 0 ? 'swipe-left-right' : 'swipe-right-left',
       timeMs: frame.timeMs,
       payload: { dx, dy, angle }
     }];

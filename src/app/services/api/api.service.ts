@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { MetaData, Slice, Volume } from './api.types';
+import { MetaData, Volume } from './api.types';
+import { shareReplay } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,16 +9,13 @@ import { MetaData, Slice, Volume } from './api.types';
 export class ApiService {
   private readonly http = inject(HttpClient);
   private root = "http://127.0.0.1:8000";
+  private readonly volume$ = this.http.get<Volume>(`${this.root}/volume`).pipe(shareReplay(1));
 
   getMeta() {
     return this.http.get<MetaData>(`${this.root}/meta`);
   }
 
-  getSlice(zIndex: number) {
-    return this.http.get<Slice>(`${this.root}/slice/${zIndex}`);
-  }
-
   getVolume() {
-    return this.http.get<Volume>(`${this.root}/volume`);
+    return this.volume$;
   }
 }

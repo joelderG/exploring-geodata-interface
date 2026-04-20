@@ -4,6 +4,7 @@ import { AppStateService } from '@services/app-state/app-state.service';
 import { InteractionService } from '@services/interaction/interaction.service';
 import { TouchPoint } from 'app/shared/model/touch-point';
 import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
+import { getDeepestPoint, getSecondaryDeepPoint } from '@shared/util/touch-point.utils';
 
 @Injectable({
   providedIn: 'root'
@@ -61,58 +62,13 @@ export class DepthInteractionService implements OnDestroy {
       return;
     }
 
-    const deepest = this.findDeepestPoint(nextTouchPoints);
-    const secondary = this.findSecondaryDeepPoint(nextTouchPoints, deepest);
+    const deepest = getDeepestPoint(nextTouchPoints);
+    const secondary = getSecondaryDeepPoint(nextTouchPoints, deepest);
     this.appStateService.setCuttingPlaneInteractionState(
       secondary ? CuttingPlaneInteractionState.Frozen : CuttingPlaneInteractionState.Interactive
     );
     this.currentDeepestPointSubject.next(deepest);
     this.currentSecondaryPointSubject.next(secondary);
-  }
-
-  private findDeepestPoint(points: TouchPoint[]): TouchPoint | null {
-    const candidates = points.filter(tp => Number.isFinite(tp?.Position?.Z));
-    if (candidates.length === 0) {
-      return null;
-    }
-
-    return candidates.reduce((deepest, current) => {
-      const deepestDepth = this.getDepthMagnitude(deepest);
-      const currentDepth = this.getDepthMagnitude(current);
-      return currentDepth > deepestDepth ? current : deepest;
-    }, candidates[0]);
-  }
-
-  private findSecondaryDeepPoint(points: TouchPoint[], deepest: TouchPoint | null): TouchPoint | null {
-    if (!deepest) {
-      return null;
-    }
-
-    const candidates = points.filter(tp => Number.isFinite(tp?.Position?.Z));
-    if (candidates.length < 2) {
-      return null;
-    }
-
-    let second: TouchPoint | null = null;
-    let secondDepth = -Infinity;
-
-    for (const candidate of candidates) {
-      if (candidate.TouchId === deepest.TouchId) continue;
-      const depth = this.getDepthMagnitude(candidate);
-      if (!Number.isFinite(depth)) continue;
-      if (depth > secondDepth) {
-        secondDepth = depth;
-        second = candidate;
-      }
-    }
-    return second;
-  }
-
-  private getDepthMagnitude(point: TouchPoint | null | undefined): number {
-    const z = point?.Position?.Z;
-    if (z === undefined) return NaN;
-    if (!Number.isFinite(z)) return NaN;
-    return z < 0 ? -z : z;
   }
 
   public getCurrentTouchPoints(): TouchPoint[] {

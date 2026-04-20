@@ -1,4 +1,4 @@
-import { Component, HostListener, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, ViewChild, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CuttingPlaneComponent } from "@components/cutting-plane/cutting-plane.component";
 import { ClassSelectorComponent } from '@components/class-selector/class-selector.component';
 import { VolumeViewerComponent } from '@components/volume-viewer/volume-viewer.component';
@@ -6,11 +6,11 @@ import { SettingsComponent } from '@components/settings/settings.component';
 import { TouchpointsDebugComponent } from '@components/touchpoints-debug/touchpoints-debug.component';
 import { ExplorationWindowComponent } from '@components/exploration-window/exploration-window.component';
 import { ContextMenuComponent } from '@components/context-menu/context-menu.component';
-import { TouchpointMarkersComponent } from '@components/touchpoint-markers/touchpoint-markers.component';
 import { ApiService } from '@services/api/api.service';
 import { AppStateService } from '@services/app-state/app-state.service';
 import { DepthInteractionService } from '@services/depth-interaction/depth-interaction.service';
-import { GestureEngineService } from './gestures/gesture-engine.service';
+import { GestureEngineService } from '@services/gesture/gesture-engine.service';
+import { GestureActionService } from '@services/gesture/gesture-action.service';
 import { distinctUntilChanged, Subscription } from 'rxjs';
 import { ClassInfo, Volume } from '@services/api/api.types';
 import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
@@ -20,6 +20,8 @@ import { ensureSliceIndexInBounds, getAxisLengthForOrientation, getInitialSliceI
 import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { normalizedToCoordinateIndex, NormalizedIndexResult } from '@shared/util/normalized-coordinate.utils';
 import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
+import { getValidSliceRange, SliceIndexRange } from '@shared/util/volume-slice.utils';
+import { GestureExplanationComponent } from '@components/gesture-explanation/gesture-explanation.component';
 
 @Component({
   selector: 'app-root',
@@ -31,12 +33,12 @@ import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interac
     TouchpointsDebugComponent,
     ExplorationWindowComponent,
     ContextMenuComponent,
-    TouchpointMarkersComponent
+    GestureExplanationComponent
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App implements OnInit, OnDestroy {
+export class App implements OnInit, OnDestroy, AfterViewInit {
   protected readonly title = signal('reflex-geo-explore');
 
   private readonly subscriptions: Subscription = new Subscription;
@@ -44,7 +46,9 @@ export class App implements OnInit, OnDestroy {
   private readonly appStateService = inject(AppStateService);
   private readonly depthInteractionService = inject(DepthInteractionService);
   private readonly gestureEngine = inject(GestureEngineService);
+  private readonly gestureActionService = inject(GestureActionService);
   protected isTouchpointsDebugVisible = false;
+  protected isGestureExplanationVisible = false;
   protected deepestPoint: TouchPoint | null = null;
   protected secondaryDeepPoint: TouchPoint | null = null;
   private readonly volumeViewerVisibilityMs = 3000;
@@ -54,7 +58,6 @@ export class App implements OnInit, OnDestroy {
   protected cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
   protected isVolumeViewerVisible = false;
   private isVolumeViewerAlwaysVisible = false;
-  // TODO: add decent destructuring of object when needed 
   protected coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   protected classes: number[] = [];
   protected classesInfo: ClassInfo[] = [];
@@ -62,7 +65,14 @@ export class App implements OnInit, OnDestroy {
   protected contextMenuToggleEnabled = false;
   protected contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
+  private readonly noDataClass = -1;
+  private cachedVolumeForSliceRange: Volume | null = null;
+  private readonly validSliceRange = new Map<CuttingPlaneOrientation, SliceIndexRange>();
   protected isCuttingPlaneFrozen = false;
+
+  @ViewChild('cuttingPlaneEl', { read: ElementRef })
+  private cuttingPlaneEl?: ElementRef<HTMLElement>;
+  protected cuttingPlaneHost: HTMLElement | null = null;
 
   ngOnInit() {
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$
@@ -75,6 +85,7 @@ export class App implements OnInit, OnDestroy {
           this.coordinates,
           this.cuttingPlaneOrientation
         );
+        this.zIndex = this.clampZIndexToData(this.zIndex);
         this.recomputeContextMenuText();
       }));
 
@@ -97,17 +108,25 @@ export class App implements OnInit, OnDestroy {
       this.classes = metaData.classes;
       this.classesInfo = metaData.class_info;
       this.zIndex = getInitialSliceIndexForOrientation(this.cuttingPlaneOrientation, this.coordinates);
+      this.zIndex = this.clampZIndexToData(this.zIndex);
       this.appStateService.initializeClasses(metaData.classes);
       this.recomputeContextMenuText();
     }));
 
     this.subscriptions.add(this.apiService.getVolume().subscribe((volume) => {
       this.volume = volume;
+      this.cachedVolumeForSliceRange = null;
+      this.validSliceRange.clear();
+      this.zIndex = this.clampZIndexToData(this.zIndex);
       this.recomputeContextMenuText();
     }));
 
     this.subscriptions.add(this.appStateService.touchpointsDebugVisible$.subscribe((isVisible) => {
       this.isTouchpointsDebugVisible = isVisible;
+    }));
+
+    this.subscriptions.add(this.appStateService.gestureExplanationVisible$.subscribe((isVisible) => {
+      this.isGestureExplanationVisible = isVisible;
     }));
 
     this.subscriptions.add(this.appStateService.cuttingPlaneInteractionState$
@@ -164,6 +183,10 @@ export class App implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
   }
 
+  ngAfterViewInit(): void {
+    this.cuttingPlaneHost = this.cuttingPlaneEl?.nativeElement ?? null;
+  }
+
   @HostListener('window:keydown', ['$event'])
   onKey(e: KeyboardEvent) {
     if (e.key === 'ArrowUp') {
@@ -180,13 +203,6 @@ export class App implements OnInit, OnDestroy {
       const nextZIndex = Math.max(this.zIndex - 1, 0);
       this.updateZIndex(nextZIndex);
     }
-    if (e.key >= '0' && e.key <= '9') {
-      const i = parseInt(e.key);
-      this.appStateService.toggleClassVisibilityAtIndex(i);
-    }
-    if (e.key === 't' || e.key === 'T') {
-      this.appStateService.toggleShowOnlyCurrentSlicePoints();
-    }
     if (e.key === 's' || e.key === 'S') {
       this.appStateService.toggleSettingsPanelVisibility();
     }
@@ -195,10 +211,43 @@ export class App implements OnInit, OnDestroy {
   private updateZIndex(nextZIndex: number) {
     const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
     if (axisLength <= 0) return;
-    const clamped = Math.min(Math.max(nextZIndex, 0), axisLength - 1);
+    const clamped = this.clampZIndexToData(nextZIndex);
     if (clamped === this.zIndex) return;
     this.zIndex = clamped;
     this.showVolumeViewerTemporarily();
+  }
+
+  private clampZIndexToData(nextZIndex: number): number {
+    const axisLength = getAxisLengthForOrientation(this.cuttingPlaneOrientation, this.coordinates);
+    if (axisLength <= 0) return 0;
+    const coordMax = Math.max(axisLength - 1, 0);
+    let clamped = Math.min(Math.max(nextZIndex, 0), coordMax);
+
+    const range = this.getValidSliceRangeForOrientation();
+    if (!range) return clamped;
+
+    let min = Math.min(range.min, coordMax);
+    let max = Math.min(range.max, coordMax);
+    if (min > max) {
+      min = 0;
+      max = coordMax;
+    }
+
+    clamped = Math.min(Math.max(clamped, min), max);
+    return clamped;
+  }
+
+  private getValidSliceRangeForOrientation(): SliceIndexRange | null {
+    if (!this.volume) return null;
+    if (this.cachedVolumeForSliceRange !== this.volume) {
+      this.cachedVolumeForSliceRange = this.volume;
+      this.validSliceRange.clear();
+    }
+    const cached = this.validSliceRange.get(this.cuttingPlaneOrientation);
+    if (cached) return cached;
+    const range = getValidSliceRange(this.volume, this.cuttingPlaneOrientation, this.noDataClass);
+    this.validSliceRange.set(this.cuttingPlaneOrientation, range);
+    return range;
   }
 
   private showVolumeViewerTemporarily() {

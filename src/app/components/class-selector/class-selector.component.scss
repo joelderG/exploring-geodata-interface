@@ -62,9 +62,13 @@
   }
 
   &--hidden {
-    opacity: 0.45;
     background: #f0f0f0;
     border-color: #d0d0d0;
+    color: #8a8a8a;
+  }
+
+  &--hidden .class-item__swatch {
+    opacity: 0.45;
   }
 
   &--context {

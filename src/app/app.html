@@ -3,13 +3,13 @@
 
   <div class="cutting-plane-layer" #cuttingPlaneLayer>
     <app-cutting-plane
+      #cuttingPlaneEl
       [zIndex]="zIndex"
       [coordinates]="coordinates"
       [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [classes]="classes"
       (visibleClassIndicesChange)="onVisibleClassIndicesChange($event)">
     </app-cutting-plane>
-    <app-touchpoint-markers [container]="cuttingPlaneLayer"></app-touchpoint-markers>
     @if (!isCuttingPlaneFrozen) {
       <app-exploration-window
         [deepestPoint]="deepestPoint"
@@ -45,8 +45,14 @@
     </div>
   }
 
+  @if (isGestureExplanationVisible) {
+    <div class="gesture-explanation-layer">
+      <app-gesture-explanation></app-gesture-explanation>
+    </div>
+  }
+
   <div class="class-selector-layer">
-    <app-class-selector 
+    <app-class-selector
     [classes]="classes"
     [classesInfo]="classesInfo"
     [visibleClassIndices]="visibleClassIndices"

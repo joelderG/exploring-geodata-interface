@@ -20,7 +20,6 @@ export const environment = {
   depthImageRoute: 'depthImage',
   pointCloudImageRoute: 'depthImagePointCloud',
   websocketUrl: 'ws://localhost:40001/ReFlex',
-  useMockTouchpoints: false,
   dataRepository: 'assets/data/data.json',
   settingsFile: 'assets/data/settings.json',
   keyConfigFile: 'assets/data/keybindings.json',
