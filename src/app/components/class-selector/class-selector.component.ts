@@ -1,7 +1,8 @@
 import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
-import { AppStateService } from '@services/app-state-service/app-state.service';
-import { ColorService } from '@services/color-service/color.service';
-import { Subject, takeUntil } from 'rxjs';
+import { ClassInfo } from '@services/api/api.types';
+import { AppStateService } from '@services/app-state/app-state.service';
+import { ColorService } from '@services/color/color.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-class-selector',
@@ -11,27 +12,41 @@ import { Subject, takeUntil } from 'rxjs';
 })
 export class ClassSelectorComponent implements OnInit, OnDestroy {
   @Input() classes: number[] = [];
+  @Input() classesInfo: ClassInfo[] = [];
+  @Input() visibleClassIndices: number[] | null = null;
+  @Input() contextMenuClassIndex: number | null = null;
+
+  private readonly subscription: Subscription = new Subscription;
 
   private readonly appStateService = inject(AppStateService);
   private readonly colorService = inject(ColorService);
-  private readonly destroy$ = new Subject<void>();
+  
   protected classVisible: boolean[] = [];
 
   ngOnInit() {
-    this.appStateService.classVisibility$
-      .pipe(takeUntil(this.destroy$))
+    this.subscription.add(this.appStateService.classVisibility$
       .subscribe((classVisible) => {
         this.classVisible = classVisible;
-      });
+      }));
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+    this.subscription.unsubscribe();
   }
 
   protected isVisible(index: number): boolean {
     return this.classVisible[index] ?? true;
+  }
+
+  protected isVisibleInCuttingPlane(index: number): boolean {
+    if (this.visibleClassIndices === null) {
+      return true;
+    }
+    return this.visibleClassIndices.includes(index) && this.isVisible(index);
+  }
+
+  protected getDisplayIndices(): number[] {
+    return this.classes.map((_, index) => index);
   }
 
   protected toggle(index: number): void {

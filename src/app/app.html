@@ -1,24 +1,62 @@
 <div class="app-shell">
-  <div class="cutting-plane-layer">
+  <app-settings></app-settings>
+
+  <div class="cutting-plane-layer" #cuttingPlaneLayer>
     <app-cutting-plane
+      #cuttingPlaneEl
       [zIndex]="zIndex"
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
-      [classes]="classes">
+      [coordinates]="coordinates"
+      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
+      [classes]="classes"
+      (visibleClassIndicesChange)="onVisibleClassIndicesChange($event)">
     </app-cutting-plane>
+    @if (!isCuttingPlaneFrozen) {
+      <app-exploration-window
+        [deepestPoint]="deepestPoint"
+        [coordinates]="coordinates"
+        [classes]="classes"
+        [classesInfo]="classesInfo"
+        [cuttingPlaneOrientation]="cuttingPlaneOrientation"
+        [container]="cuttingPlaneLayer">
+      </app-exploration-window>
+    }
+    <app-context-menu
+      [point]="secondaryDeepPoint"
+      [container]="cuttingPlaneLayer"
+      [leftDisabled]="!contextMenuToggleEnabled"
+      [rightDisabled]="!contextMenuToggleEnabled"
+      (leftSelected)="onContextMenuLeftSelected()"
+      (rightSelected)="onContextMenuRightSelected()">
+    </app-context-menu>
   </div>
 
   <div class="volume-viewer-layer" [class.is-hidden]="!isVolumeViewerVisible">
     <app-volume-viewer
-      [xCoords]="xCoords"
-      [yCoords]="yCoords"
-      [zCoords]="zCoords"
+      [coordinates]="coordinates"
       [classes]="classes"
+      [cuttingPlaneOrientation]="cuttingPlaneOrientation"
       [zIndex]="zIndex">
     </app-volume-viewer>
   </div>
 
+  @if (isTouchpointsDebugVisible) {
+    <div class="touchpoints-debug-layer">
+      <app-touchpoints-debug></app-touchpoints-debug>
+    </div>
+  }
+
+  @if (isGestureExplanationVisible) {
+    <div class="gesture-explanation-layer">
+      <app-gesture-explanation></app-gesture-explanation>
+    </div>
+  }
+
   <div class="class-selector-layer">
-    <app-class-selector [classes]="classes"></app-class-selector>
+    <app-class-selector
+    [classes]="classes"
+    [classesInfo]="classesInfo"
+    [visibleClassIndices]="visibleClassIndices"
+    [contextMenuClassIndex]="contextMenuClassIndex">
+  </app-class-selector>
   </div>
 </div>

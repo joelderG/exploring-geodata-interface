@@ -1,11 +1,13 @@
-import { Component, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
-import { ApiService } from '@services/api-service/api.service';
+import { Component, DestroyRef, ElementRef, inject, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ViewChild } from '@angular/core';
+import { ApiService } from '@services/api/api.service';
 import * as Plotly from 'plotly.js-dist-min';
 import { Data, Layout } from 'plotly.js';
-import { Volume } from '@services/api-service/api.types';
-import { ColorService } from '@services/color-service/color.service';
-import { AppStateService } from '@services/app-state-service/app-state.service';
-import { Subject, takeUntil } from 'rxjs';
+import { Volume } from '@services/api/api.types';
+import { ColorService } from '@services/color/color.service';
+import { AppStateService } from '@services/app-state/app-state.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CuttingPlaneOrientation } from '@shared/enum/cutting-plane-orientation';
+import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 
 @Component({
   selector: 'app-volume-viewer',
@@ -14,10 +16,9 @@ import { Subject, takeUntil } from 'rxjs';
   styleUrl: './volume-viewer.component.scss'
 })
 export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
-  @Input() xCoords: number[] = [];
-  @Input() yCoords: number[] = [];
-  @Input() zCoords: number[] = [];
+  @Input() coordinates: VolumeCoordinates = { xCoordinates: [], yCoordinates: [], zCoordinates: [] };
   @Input() classes: number[] = [];
+  @Input() cuttingPlaneOrientation: CuttingPlaneOrientation = CuttingPlaneOrientation.XY;
 
   @Input() zIndex = 0;
   @ViewChild('plot', { static: true }) plotElement!: ElementRef;
@@ -25,7 +26,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   private readonly apiService = inject(ApiService);
   private readonly colorService = inject(ColorService);
   private readonly appStateService = inject(AppStateService);
-  private readonly destroy$ = new Subject<void>();
+  private readonly destroyRef = inject(DestroyRef);
   private isPlotInitialized = false;
   private volume?: Volume;
   private classVisible: boolean[] = [];
@@ -34,7 +35,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnInit() {
     this.appStateService.classVisibility$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((classVisible) => {
         this.classVisible = classVisible;
         if (this.isPlotInitialized) {
@@ -43,7 +44,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       });
 
     this.appStateService.showOnlyCurrentSlicePoints$
-      .pipe(takeUntil(this.destroy$))
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((showOnlyCurrentSlicePoints) => {
         this.showOnlyCurrentSlicePoints = showOnlyCurrentSlicePoints;
         if (this.isPlotInitialized) {
@@ -51,10 +52,12 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         }
       });
 
-    this.apiService.getVolume().subscribe((volume) => {
-      this.volume = volume;
-      this.tryBuildPlot();
-    });
+    this.apiService.getVolume()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((volume) => {
+        this.volume = volume;
+        this.tryBuildPlot();
+      });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -63,7 +66,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (!this.isPlotInitialized) return;
 
-    if (changes['zIndex']) {
+    if (changes['zIndex'] || changes['cuttingPlaneOrientation']) {
       this.updateSlicePlane();
       if (this.showOnlyCurrentSlicePoints) {
         this.updateRenderedPoints();
@@ -73,8 +76,6 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     Plotly.purge(this.plotElement.nativeElement);
   }
 
@@ -93,9 +94,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         for (let iy = 0; iy < ny; iy++) {
           for (let ix = 0; ix < nx; ix++) {
             if (volume.data[iz][iy][ix] === cls) {
-              xs.push(this.xCoords[ix]);
-              ys.push(this.yCoords[iy]);
-              zs.push(this.zCoords[iz]);
+              xs.push(this.coordinates.xCoordinates[ix]);
+              ys.push(this.coordinates.yCoordinates[iy]);
+              zs.push(this.coordinates.zCoordinates[iz]);
             }
           }
         }
@@ -109,41 +110,62 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         name: `Klasse ${cls}`,
         legendgroup: `cls${cls}`,
         visible: true,
-        showlegend: false
+        showlegend: false,
+        hoverinfo: 'skip',
+        hovertemplate: ''
       });
 
       this.classPoints.push({ x: xs, y: ys, z: zs });
     });
 
-    const zVal = this.zCoords[this.zIndex];
-    const zPlane = this.yCoords.map(() => this.xCoords.map(() => zVal));
+    const { xGrid, yGrid, zGrid } = this.buildPlaneGrid(this.cuttingPlaneOrientation, this.zIndex);
 
     traces.push({
       type: 'surface',
-      x: this.xCoords,
-      y: this.yCoords,
-      z: zPlane,
+      x: xGrid,
+      y: yGrid,
+      z: zGrid,
       opacity: 0.25,
       showscale: false,
       colorscale: 'Greys',
       name: 'Schnittebene',
-      showlegend: false
+      showlegend: false,
+      hoverinfo: 'skip',
+      hovertemplate: ''
     });
 
     const layout: Partial<Layout> = {
       autosize: true,
       margin: { l: 0, r: 0, t: 40, b: 0 },
+      hovermode: false,
+      clickmode: 'none',
       scene: {
-        xaxis: { title: { text: 'X (m)' }, range: [Math.min(...this.xCoords), Math.max(...this.xCoords)] },
-        yaxis: { title: { text: 'Y (m)' }, range: [Math.min(...this.yCoords), Math.max(...this.yCoords)] },
-        zaxis: { title: { text: 'Z (m)' }, range: [Math.min(...this.zCoords), Math.max(...this.zCoords)] },
-        aspectmode: 'cube'
+        xaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.xCoordinates), Math.max(...this.coordinates.xCoordinates)]
+        },
+        yaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.yCoordinates), Math.max(...this.coordinates.yCoordinates)]
+        },
+        zaxis: {
+          title: { text: '' },
+          showticklabels: false,
+          range: [Math.min(...this.coordinates.zCoordinates), Math.max(...this.coordinates.zCoordinates)]
+        },
+        aspectmode: 'cube',
+        camera: {
+          eye: { x: -1.1, y: -1.1, z: 1.1 }
+        }
       } 
     };
 
     Plotly.newPlot(this.plotElement.nativeElement, traces, layout, {
       scrollZoom: true,
-      responsive: true
+      responsive: true,
+      displayModeBar: false
     });
 
     this.isPlotInitialized = true;
@@ -153,9 +175,9 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
 
   private inputsReady() {
     return (
-      this.xCoords.length > 0 &&
-      this.yCoords.length > 0 &&
-      this.zCoords.length > 0 &&
+      this.coordinates.xCoordinates.length > 0 &&
+      this.coordinates.yCoordinates.length > 0 &&
+      this.coordinates.zCoordinates.length > 0 &&
       this.classes.length > 0
     );
   }
@@ -166,13 +188,12 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateSlicePlane() {
-    const zVal = this.zCoords[this.zIndex];
-    const zPlane = this.yCoords.map(() => this.xCoords.map(() => zVal));
+    const { xGrid, yGrid, zGrid } = this.buildPlaneGrid(this.cuttingPlaneOrientation, this.zIndex);
 
     // Surface ist immer der letzte Trace (Index = classes.length)
     Plotly.restyle(
       this.plotElement.nativeElement,
-      { z: [zPlane] },
+      { x: [xGrid], y: [yGrid], z: [zGrid] },
       [this.classes.length]
     );
   }
@@ -189,7 +210,7 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   private updateRenderedPoints() {
-    const targetZ = this.zCoords[this.zIndex];
+    const targetValue = this.getTargetAxisValue(this.cuttingPlaneOrientation, this.zIndex);
     const eps = 1e-9;
 
     this.classPoints.forEach((points, index) => {
@@ -207,7 +228,8 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
       const zFiltered: number[] = [];
 
       for (let i = 0; i < points.z.length; i++) {
-        if (Math.abs(points.z[i] - targetZ) < eps) {
+        const axisValue = this.getAxisValueForOrientation(this.cuttingPlaneOrientation, points, i);
+        if (Math.abs(axisValue - targetValue) < eps) {
           xFiltered.push(points.x[i]);
           yFiltered.push(points.y[i]);
           zFiltered.push(points.z[i]);
@@ -220,5 +242,87 @@ export class VolumeViewerComponent implements OnInit, OnChanges, OnDestroy {
         [index]
       );
     });
+  }
+
+  private buildPlaneGrid(orientation: CuttingPlaneOrientation, index: number) {
+    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    const xLen = this.coordinates.xCoordinates.length;
+    const yLen = this.coordinates.yCoordinates.length;
+    const zLen = this.coordinates.zCoordinates.length;
+
+    if (xLen === 0 || yLen === 0 || zLen === 0) {
+      return { xGrid: [[]], yGrid: [[]], zGrid: [[]] };
+    }
+
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ: {
+      const yVal = this.coordinates.yCoordinates[safeIndex];
+      const xGrid = Array.from({ length: zLen }, () => [...this.coordinates.xCoordinates]);
+      const yGrid = Array.from({ length: zLen }, () => new Array(xLen).fill(yVal));
+      const zGrid = this.coordinates.zCoordinates.map((zVal) => new Array(xLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
+    case CuttingPlaneOrientation.YZ: {
+      const xVal = this.coordinates.xCoordinates[safeIndex];
+      const xGrid = Array.from({ length: zLen }, () => new Array(yLen).fill(xVal));
+      const yGrid = Array.from({ length: zLen }, () => [...this.coordinates.yCoordinates]);
+      const zGrid = this.coordinates.zCoordinates.map((zVal) => new Array(yLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
+    case CuttingPlaneOrientation.XY:
+    default: {
+      const zVal = this.coordinates.zCoordinates[safeIndex];
+      const xGrid = Array.from({ length: yLen }, () => [...this.coordinates.xCoordinates]);
+      const yGrid = this.coordinates.yCoordinates.map((yVal) => new Array(xLen).fill(yVal));
+      const zGrid = Array.from({ length: yLen }, () => new Array(xLen).fill(zVal));
+      return { xGrid, yGrid, zGrid };
+    }
+    }
+  }
+
+  private clampIndexForOrientation(orientation: CuttingPlaneOrientation, index: number) {
+    const maxIndex = this.getAxisLengthForOrientation(orientation) - 1;
+    return Math.min(Math.max(index, 0), Math.max(maxIndex, 0));
+  }
+
+  private getAxisLengthForOrientation(orientation: CuttingPlaneOrientation): number {
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ:
+      return this.coordinates.yCoordinates.length;
+    case CuttingPlaneOrientation.YZ:
+      return this.coordinates.xCoordinates.length;
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.coordinates.zCoordinates.length;
+    }
+  }
+
+  private getTargetAxisValue(orientation: CuttingPlaneOrientation, index: number): number {
+    const safeIndex = this.clampIndexForOrientation(orientation, index);
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ:
+      return this.coordinates.yCoordinates[safeIndex];
+    case CuttingPlaneOrientation.YZ:
+      return this.coordinates.xCoordinates[safeIndex];
+    case CuttingPlaneOrientation.XY:
+    default:
+      return this.coordinates.zCoordinates[safeIndex];
+    }
+  }
+
+  private getAxisValueForOrientation(
+    orientation: CuttingPlaneOrientation,
+    points: { x: number[]; y: number[]; z: number[] },
+    index: number
+  ): number {
+    switch (orientation) {
+    case CuttingPlaneOrientation.XZ:
+      return points.y[index];
+    case CuttingPlaneOrientation.YZ:
+      return points.x[index];
+    case CuttingPlaneOrientation.XY:
+    default:
+      return points.z[index];
+    }
   }
 }
