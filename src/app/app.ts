@@ -21,7 +21,7 @@ import { VolumeCoordinates } from '@shared/interface/volume-coordinates';
 import { normalizedToCoordinateIndex, NormalizedIndexResult } from '@shared/util/normalized-coordinate.utils';
 import { CuttingPlaneInteractionState } from '@shared/enum/cutting-plane-interaction-state';
 import { getValidSliceRange, SliceIndexRange } from '@shared/util/volume-slice.utils';
-import {GestureExplanationComponent} from '@components/gesture-explanation/gesture-explanation.component';
+import { GestureExplanationComponent } from '@components/gesture-explanation/gesture-explanation.component';
 
 @Component({
   selector: 'app-root',

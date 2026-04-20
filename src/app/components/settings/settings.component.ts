@@ -53,7 +53,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     this.subscriptions.add(this.appStateService.gestureExplanationVisible$.subscribe((isVisible) => {
       this.isGestureExplanationVisible = isVisible;
-    }))
+    }));
 
     this.subscriptions.add(this.appStateService.cuttingPlaneOrientation$.subscribe((orientation) => {
       this.cuttingPlaneOrientation = orientation;

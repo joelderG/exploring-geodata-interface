@@ -6,11 +6,11 @@ describe('GestureExplanationComponent', () => {
   let component: GestureExplanationComponent;
   let fixture: ComponentFixture<GestureExplanationComponent>;
 
-  beforeEach(async () => {
+  beforeEach(async() => {
     await TestBed.configureTestingModule({
       imports: [GestureExplanationComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(GestureExplanationComponent);
     component = fixture.componentInstance;
