@@ -1,6 +1,6 @@
 import { HttpClient } from "@angular/common/http";
 import { inject, Injectable } from "@angular/core";
-import { map, from, Observable, interval, Subscription } from "rxjs";
+import { map, from, Observable } from "rxjs";
 import { environment } from "app/environments/environment";
 import { CameraConfig } from "app/shared/interface/camera-config";
 import { NetworkSettings } from "app/shared/model/network-settings";
@@ -16,7 +16,6 @@ export class InteractionService extends WebSocketService<TouchPoint[]> {
   private static readonly _startWebSocketsRoute = `http://${environment.serverAddress}:${environment.serverPort}/${environment.startWebSocketsRoute}`;
   private readonly _getCalibrationRoute = `http://${environment.serverAddress}:${environment.serverPort}/${environment.calibrationRoute}`;
   private readonly _getCameraConfigRoute = `http://${environment.serverAddress}:${environment.serverPort}/api/Tracking/SelectedCameraConfig`;
-  private mockSubscription?: Subscription;
   
 
   public constructor() {
@@ -24,18 +23,10 @@ export class InteractionService extends WebSocketService<TouchPoint[]> {
   }
 
   public override startStreaming(): void {
-    if (environment.useMockTouchpoints) {
-      this.startMockStreaming();
-      return;
-    }
     super.startStreaming();
   }
 
   public override stopStreaming(): void {
-    if (environment.useMockTouchpoints) {
-      this.stopMockStreaming();
-      return;
-    }
     super.stopStreaming();
   }
 
@@ -91,41 +82,5 @@ export class InteractionService extends WebSocketService<TouchPoint[]> {
       environment.networkingConfig,
       { headers: this.Headers }
     );
-  }
-
-  private startMockStreaming(): void {
-    if (this.mockSubscription) return;
-    this.isConnecting.next(false);
-    this.isConnected.next(true);
-    const startMs = Date.now();
-
-    this.mockSubscription = interval(60).subscribe(() => {
-      const elapsedMs = Date.now() - startMs;
-      const t = elapsedMs / 1000;
-      const z1 = -((1 - Math.cos(t * 0.8)) / 2);
-
-      const now = BigInt(Date.now());
-
-      const points: TouchPoint[] = [
-        {
-          TouchId: 1,
-          Position: { X: 0.2, Y: 0.4, Z: z1, IsFiltered: false, IsValid: true },
-          ExtremumDescription: { Type: 0, NumFittingPoints: 0, PercentageFittingPoints: 0 },
-          Time: now,
-          Confidence: 1,
-          Type: 0
-        }
-      ];
-
-      this.numFramesReceived++;
-      this.Data.next(points);
-    });
-  }
-
-  private stopMockStreaming(): void {
-    this.mockSubscription?.unsubscribe();
-    this.mockSubscription = undefined;
-    this.isConnected.next(false);
-    this.isConnecting.next(false);
   }
 }
