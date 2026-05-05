@@ -4,7 +4,7 @@
   <div class="touchpoints-debug__block">
     <div class="touchpoints-debug__label">Deepest TouchPoint</div>
     @if (deepestPoint) {
-      <div class="touchpoints-debug__row">
+      <div class="touchpoints-debug__row touchpoints-debug__row--card">
         <span class="touchpoints-debug__id">#{{ deepestPoint.TouchId }}</span>
         <span class="touchpoints-debug__coord">X {{ formatCoord(deepestPoint.Position.X) }}</span>
         <span class="touchpoints-debug__coord">Y {{ formatCoord(deepestPoint.Position.Y) }}</span>
@@ -16,13 +16,14 @@
   </div>
 
   <div class="touchpoints-debug__block">
-    <div class="touchpoints-debug__label">Current TouchPoints ({{ touchPoints.length }})</div>
+    <div class="touchpoints-debug__label">Current TouchPoints</div>
+    <div class="touchpoints-debug__count">{{ touchPoints.length }} active</div>
     @if (touchPoints.length === 0) {
       <div class="touchpoints-debug__empty">No touch points</div>
     } @else {
       <div class="touchpoints-debug__list">
         @for (tp of touchPoints; track tp.TouchId) {
-          <div class="touchpoints-debug__row">
+          <div class="touchpoints-debug__row touchpoints-debug__row--card">
             <span class="touchpoints-debug__id">#{{ tp.TouchId }}</span>
             <span class="touchpoints-debug__coord">X {{ formatCoord(tp.Position.X) }}</span>
             <span class="touchpoints-debug__coord">Y {{ formatCoord(tp.Position.Y) }}</span>

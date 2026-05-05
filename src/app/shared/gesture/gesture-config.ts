@@ -26,8 +26,12 @@ export const gestureConfig = {
     maxDurationMs: 2000,
     // Max allowed vertical movement to still be considered a horizontal drag.
     maxVerticalDelta: 0.25,
+    // Max allowed horizontal movement to still be considered a vertical drag.
+    maxHorizontalDelta: 0.25,
     // Minimum horizontal movement required to trigger a drag.
     minHorizontalDelta: 0.10,
+    // Minimum vertical movement required to trigger a downward drag.
+    minVerticalDelta: 0.10,
     // Cooldown after a drag is recognized to avoid repeated triggers.
     cooldownMs: 500
   }

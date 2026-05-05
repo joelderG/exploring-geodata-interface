@@ -10,10 +10,10 @@
 
 .context-menu {
   min-width: 240px;
-  background: $color-white;
-  border: 1px solid $color-grey-dark;
+  //background: $color-white;
+  background: transparent;
+  //border: 1px solid $color-grey-dark;
   border-radius: 2px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
   padding: 10px 12px 12px;
   display: grid;
   gap: 10px;
@@ -32,13 +32,13 @@
   &__option {
     appearance: none;
     border: none;
-    background: rgba(0, 0, 0, 0.03);
+    background: $color-white;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
     // background: $color-white;
     text-align: center;
     font-size: 14px;
-    padding: 20px 8px;
-    width: 140px;
-    height: 140px;
+    width: 130px;
+    height: 130px;
     border-radius: 360px;
     cursor: pointer;
     color: $color-grey-dark;
@@ -46,10 +46,23 @@
 
     &--left {
       text-align: center;
+      grid-area: left;
     }
 
     &--right {
       text-align: center;
+      grid-area: right;
+    }
+
+    &--down {
+      text-align: center;
+      grid-area: down;
+      justify-self: center;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.45;
     }
 
     &:hover {
@@ -60,6 +73,9 @@
   &__options {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 100px;
+    grid-template-areas:
+      "left right"
+      "down down";
+    gap: 24px 120px;
   }
 }

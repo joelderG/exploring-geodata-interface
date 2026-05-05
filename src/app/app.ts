@@ -63,6 +63,7 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   protected classesInfo: ClassInfo[] = [];
   protected visibleClassIndices: number[] | null = null;
   protected contextMenuToggleEnabled = false;
+  protected contextMenuResetEnabled = false;
   protected contextMenuClassIndex: number | null = null;
   private volume: Volume | null = null;
   private readonly noDataClass = -1;
@@ -129,6 +130,10 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
       this.isGestureExplanationVisible = isVisible;
     }));
 
+    this.subscriptions.add(this.appStateService.classVisibility$.subscribe((classVisibility) => {
+      this.contextMenuResetEnabled = classVisibility.some((isVisible) => !isVisible);
+    }));
+
     this.subscriptions.add(this.appStateService.cuttingPlaneInteractionState$
       .pipe(distinctUntilChanged())
       .subscribe((state) => {
@@ -170,6 +175,9 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
       }
       if (event.type === 'context-drag-right') {
         this.onContextMenuRightSelected();
+      }
+      if (event.type === 'context-drag-down') {
+        this.onContextMenuDownSelected();
       }
     }));
   }
@@ -276,6 +284,10 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
     this.toggleContextMenuOtherClassesVisibility();
   }
 
+  protected onContextMenuDownSelected(): void {
+    this.resetContextMenuClassVisibility();
+  }
+
   private toggleContextMenuClassVisibility(): void {
     if (this.contextMenuClassIndex === null) return;
     this.appStateService.toggleClassVisibilityAtIndex(this.contextMenuClassIndex);
@@ -284,6 +296,10 @@ export class App implements OnInit, OnDestroy, AfterViewInit {
   private toggleContextMenuOtherClassesVisibility(): void {
     if (this.contextMenuClassIndex === null) return;
     this.appStateService.toggleOtherClassVisibilityAtIndex(this.contextMenuClassIndex);
+  }
+
+  private resetContextMenuClassVisibility(): void {
+    this.appStateService.setAllClassesVisible();
   }
 
   private recomputeContextMenuText(): void {

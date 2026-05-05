@@ -22,9 +22,11 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   @Input() container: HTMLElement | null = null;
   @Input() leftDisabled = false;
   @Input() rightDisabled = false;
+  @Input() downDisabled = false;
 
   @Output() leftSelected = new EventEmitter<void>();
   @Output() rightSelected = new EventEmitter<void>();
+  @Output() downSelected = new EventEmitter<void>();
 
   @HostBinding('style.left.px')
   protected hostLeft: number | null = null;
@@ -140,5 +142,10 @@ export class ContextMenuComponent implements OnChanges, OnDestroy {
   protected onRightSelected(): void {
     if (this.rightDisabled) return;
     this.rightSelected.emit();
+  }
+
+  protected onDownSelected(): void {
+    if (this.downDisabled) return;
+    this.downSelected.emit();
   }
 }

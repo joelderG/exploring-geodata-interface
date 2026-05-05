@@ -25,8 +25,10 @@
       [container]="cuttingPlaneLayer"
       [leftDisabled]="!contextMenuToggleEnabled"
       [rightDisabled]="!contextMenuToggleEnabled"
+      [downDisabled]="!contextMenuResetEnabled"
       (leftSelected)="onContextMenuLeftSelected()"
-      (rightSelected)="onContextMenuRightSelected()">
+      (rightSelected)="onContextMenuRightSelected()"
+      (downSelected)="onContextMenuDownSelected()">
     </app-context-menu>
   </div>
 

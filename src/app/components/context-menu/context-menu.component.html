@@ -1,6 +1,5 @@
 @if (point) {
   <div class="context-menu" role="menu" aria-label="Context menu">
-    <div class="context-menu__title">Context Menu</div>
     <div class="context-menu__options" role="presentation">
       <button
         class="context-menu__option context-menu__option--left"
@@ -17,6 +16,14 @@
         [disabled]="rightDisabled"
         (click)="onRightSelected()">
         Sichtbarkeit aller anderen Gesteinsklassen umschalten
+      </button>
+      <button
+        class="context-menu__option context-menu__option--down"
+        type="button"
+        role="menuitem"
+        [disabled]="downDisabled"
+        (click)="onDownSelected()">
+        Alle visuellen Manipulationen zurücksetzen
       </button>
     </div>
   </div>

@@ -14,7 +14,9 @@ export class ContextMenuDragRecognizer implements GestureRecognizer {
   // Thresholds for a valid horizontal drag (normalized coords).
   private readonly maxDurationMs = gestureConfig.contextMenuDrag.maxDurationMs;
   private readonly maxVerticalDelta = gestureConfig.contextMenuDrag.maxVerticalDelta;
+  private readonly maxHorizontalDelta = gestureConfig.contextMenuDrag.maxHorizontalDelta;
   private readonly minHorizontalDelta = gestureConfig.contextMenuDrag.minHorizontalDelta;
+  private readonly minVerticalDelta = gestureConfig.contextMenuDrag.minVerticalDelta;
   private readonly cooldownMs = gestureConfig.contextMenuDrag.cooldownMs;
 
   update(frame: TouchFrame, state: GestureStateInterface): GestureEvent[] {
@@ -40,12 +42,21 @@ export class ContextMenuDragRecognizer implements GestureRecognizer {
     const dtMs = (last.timeMs - first.timeMs);
 
     if (dtMs > this.maxDurationMs) return []; // too slow
-    if (Math.abs(dy) > this.maxVerticalDelta) return []; // not horizontal
-    if (Math.abs(dx) < this.minHorizontalDelta) return []; // too small
+    const isHorizontal = Math.abs(dy) <= this.maxVerticalDelta && Math.abs(dx) >= this.minHorizontalDelta;
+    const isDownward = dy > 0 && Math.abs(dx) <= this.maxHorizontalDelta && Math.abs(dy) >= this.minVerticalDelta;
+    if (!isHorizontal && !isDownward) return [];
 
     const angle = Math.atan2(dy, dx);
     this.cooldownUntil = frame.timeMs + this.cooldownMs;
     this.activeTouchId = history.id;
+
+    if (isDownward) {
+      return [{
+        type: 'context-drag-down',
+        timeMs: frame.timeMs,
+        payload: { dx, dy, angle }
+      }];
+    }
 
     return [{
       type: dx > 0 ? 'context-drag-right' : 'context-drag-left',

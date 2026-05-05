@@ -11,7 +11,7 @@ export class AppStateService {
   private readonly classVisibilitySubject = new BehaviorSubject<boolean[]>([]);
   private readonly showOnlyCurrentSlicePointsSubject = new BehaviorSubject<boolean>(false);
   private readonly settingsPanelVisibleSubject = new BehaviorSubject<boolean>(false);
-  private readonly interactionStreamingActiveSubject = new BehaviorSubject<boolean>(true);
+  private readonly interactionStreamingActiveSubject = new BehaviorSubject<boolean>(false);
   private readonly volumeViewerAlwaysVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly touchpointsDebugVisibleSubject = new BehaviorSubject<boolean>(false);
   private readonly gestureExplanationVisibleSubject = new BehaviorSubject<boolean>(false);
